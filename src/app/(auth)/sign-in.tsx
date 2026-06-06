@@ -14,7 +14,7 @@ export default function SignInScreen() {
       email: 'alex@example.com',
       photoURL: null,
     });
-    router.replace('/(tabs)/');
+    router.replace('/(tabs)');
   }
 
   return (
