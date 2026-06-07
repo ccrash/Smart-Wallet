@@ -2,56 +2,27 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  test-mobile:
-    name: Mobile (React Native)
+  ci:
+    name: Type check & Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: retail-app
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: retail-app/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
-  test-bff:
-    name: BFF (NestJS)
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: retail-bff
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: retail-bff/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
+      - name: Type check
+        run: npx tsc --noEmit
 
       - name: Run tests
-        run: npm test
-
-      - name: Run E2E tests
-        run: npm run test:e2e
+        run: npm test -- --ci
