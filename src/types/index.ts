@@ -28,6 +28,13 @@ export type Pot = {
   createdAt: string;
 };
 
+export type VoucherProduct = {
+  denomination: number;
+  label: string;
+  description: string;
+  pointsEarned: number;
+};
+
 export type Voucher = {
   id: string;
   denomination: number;

@@ -1,0 +1,26 @@
+[
+  {
+    "denomination": 10,
+    "label": "£10 Voucher",
+    "description": "Great for everyday treats",
+    "pointsEarned": 10
+  },
+  {
+    "denomination": 25,
+    "label": "£25 Voucher",
+    "description": "Perfect for a night out",
+    "pointsEarned": 25
+  },
+  {
+    "denomination": 50,
+    "label": "£50 Voucher",
+    "description": "Treat yourself or someone special",
+    "pointsEarned": 50
+  },
+  {
+    "denomination": 100,
+    "label": "£100 Voucher",
+    "description": "The big one — maximum rewards",
+    "pointsEarned": 100
+  }
+]

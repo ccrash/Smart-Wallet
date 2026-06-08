@@ -61,6 +61,13 @@ export default function TabsLayout() {
           tabBarIcon: (p) => <TabIcon name="star" focused={p.focused} color={p.color} />,
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: (p) => <TabIcon name="settings" focused={p.focused} color={p.color} />,
+        }}
+      />
     </Tabs>
   );
 }

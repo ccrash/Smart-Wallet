@@ -1,10 +1,5 @@
-import { walletService } from '../wallet.service';
-
-jest.mock('@/store/walletStore');
-
-import { useWalletStore } from '@/store/walletStore';
-
-const mockGetState = useWalletStore.getState as jest.Mock;
+import { walletService } from '../wallet.service'
+import { db } from '../db'
 
 const makeTransactions = (count: number) =>
   Array.from({ length: count }, (_, i) => ({
@@ -14,57 +9,52 @@ const makeTransactions = (count: number) =>
     amount: 10,
     type: 'seed' as const,
     runningBalance: 500 + i * 10,
-  }));
+  }))
+
+async function run<T>(promise: Promise<T>): Promise<T> {
+  jest.runAllTimers()
+  return promise
+}
 
 describe('walletService', () => {
+  beforeEach(() => db.reset())
+
   describe('getBalance', () => {
     it('returns the current balance', async () => {
-      mockGetState.mockReturnValue({ balance: 250 });
+      db.hydrate({ balance: 250 })
 
-      const promise = walletService.getBalance();
-      jest.runAllTimers();
-      const result = await promise;
+      const result = await run(walletService.getBalance())
 
-      expect(result.error).toBeNull();
-      expect(result.data).toBe(250);
-    });
-  });
+      expect(result.error).toBeNull()
+      expect(result.data).toBe(250)
+    })
+  })
 
   describe('getTransactions', () => {
     it('returns first page of transactions', async () => {
-      const transactions = makeTransactions(25);
-      mockGetState.mockReturnValue({ transactions });
+      db.hydrate({ transactions: makeTransactions(25) })
 
-      const promise = walletService.getTransactions(0);
-      jest.runAllTimers();
-      const result = await promise;
+      const result = await run(walletService.getTransactions(0))
 
-      expect(result.error).toBeNull();
-      expect(result.data!.items).toHaveLength(20);
-      expect(result.data!.hasMore).toBe(true);
-    });
+      expect(result.error).toBeNull()
+      expect(result.data!.items).toHaveLength(20)
+      expect(result.data!.hasMore).toBe(true)
+    })
 
     it('returns second page with no more results', async () => {
-      const transactions = makeTransactions(25);
-      mockGetState.mockReturnValue({ transactions });
+      db.hydrate({ transactions: makeTransactions(25) })
 
-      const promise = walletService.getTransactions(1);
-      jest.runAllTimers();
-      const result = await promise;
+      const result = await run(walletService.getTransactions(1))
 
-      expect(result.data!.items).toHaveLength(5);
-      expect(result.data!.hasMore).toBe(false);
-    });
+      expect(result.data!.items).toHaveLength(5)
+      expect(result.data!.hasMore).toBe(false)
+    })
 
     it('returns empty page when no transactions', async () => {
-      mockGetState.mockReturnValue({ transactions: [] });
+      const result = await run(walletService.getTransactions(0))
 
-      const promise = walletService.getTransactions(0);
-      jest.runAllTimers();
-      const result = await promise;
-
-      expect(result.data!.items).toHaveLength(0);
-      expect(result.data!.hasMore).toBe(false);
-    });
-  });
-});
+      expect(result.data!.items).toHaveLength(0)
+      expect(result.data!.hasMore).toBe(false)
+    })
+  })
+})
