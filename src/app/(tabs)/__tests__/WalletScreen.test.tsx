@@ -32,7 +32,7 @@ describe('WalletScreen', () => {
   afterAll(() => jest.useFakeTimers())
 
   beforeEach(() => {
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof BASE_STATE) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof BASE_STATE) => unknown) =>
       selector(BASE_STATE)
     )
     mockGetTransactions.mockResolvedValue({
@@ -55,7 +55,7 @@ describe('WalletScreen', () => {
       ...BASE_STATE,
       pots: [{ id: 'p1', name: 'Holiday', balance: 100, createdAt: '' }],
     }
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof stateWithPots) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof stateWithPots) => unknown) =>
       selector(stateWithPots)
     )
     await render(<WalletScreen />)

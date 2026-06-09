@@ -39,7 +39,7 @@ describe('PotsScreen', () => {
   afterAll(() => jest.useFakeTimers())
 
   beforeEach(() => {
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof BASE_STATE) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof BASE_STATE) => unknown) =>
       selector(BASE_STATE)
     )
     ;(potsService.list as jest.Mock).mockResolvedValue({ data: [], error: null })
@@ -56,7 +56,7 @@ describe('PotsScreen', () => {
 
   it('renders pot card with name and balance', async () => {
     const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof stateWithPot) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof stateWithPot) => unknown) =>
       selector(stateWithPot)
     )
     await render(<PotsScreen />)
@@ -73,7 +73,7 @@ describe('PotsScreen', () => {
 
   it('opens deposit modal when Add is pressed on a pot', async () => {
     const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof stateWithPot) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof stateWithPot) => unknown) =>
       selector(stateWithPot)
     )
     await render(<PotsScreen />)

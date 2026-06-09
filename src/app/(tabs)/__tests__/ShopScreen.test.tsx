@@ -45,7 +45,7 @@ describe('ShopScreen', () => {
   afterAll(() => jest.useFakeTimers())
 
   beforeEach(() => {
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof BASE_STATE) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof BASE_STATE) => unknown) =>
       selector(BASE_STATE)
     )
     ;(vouchersService.purchase as jest.Mock).mockResolvedValue({ data: MOCK_VOUCHER, error: null })
@@ -74,7 +74,7 @@ describe('ShopScreen', () => {
 
   it('renders voucher history with code and points when vouchers exist', async () => {
     const stateWithVouchers = { ...BASE_STATE, vouchers: [MOCK_VOUCHER] }
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof stateWithVouchers) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof stateWithVouchers) => unknown) =>
       selector(stateWithVouchers)
     )
     await render(<ShopScreen />)
@@ -96,7 +96,7 @@ describe('ShopScreen', () => {
 
   it('does not open confirm modal when balance is insufficient', async () => {
     const brokenState = { ...BASE_STATE, balance: 5 }
-    ;(useWalletStore as jest.Mock).mockImplementation((selector: (s: typeof brokenState) => unknown) =>
+    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof brokenState) => unknown) =>
       selector(brokenState)
     )
     await render(<ShopScreen />)
