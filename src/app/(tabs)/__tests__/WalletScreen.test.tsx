@@ -94,10 +94,11 @@ describe('WalletScreen', () => {
   })
 
   it('fetches next page when Load more is pressed', async () => {
-    mockGetTransactions.mockResolvedValue({
-      data: { items: [MOCK_TX], hasMore: true },
-      error: null,
-    })
+    const PAGE_1_TX = { ...MOCK_TX, id: 'tx-2' }
+    mockGetTransactions
+      .mockResolvedValueOnce({ data: { items: [MOCK_TX],    hasMore: true  }, error: null })
+      .mockResolvedValueOnce({ data: { items: [PAGE_1_TX],  hasMore: false }, error: null })
+
     await render(<WalletScreen />)
     const loadMore = await screen.findByText('Load more')
 

@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons'
 
 import { generateId } from '@/api/client'
 import { potsService } from '@/api/pots.service'
-import { PotCard } from '@/components/PotCard'
+import { PotCard } from '@/components/pot/PotCard'
 import { useWalletStore } from '@/store/walletStore'
 import { Pot } from '@/types'
 

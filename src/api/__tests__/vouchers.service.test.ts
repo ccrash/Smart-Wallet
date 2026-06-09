@@ -47,8 +47,7 @@ describe('vouchersService', () => {
     it('returns error for invalid denomination', async () => {
       db.hydrate({ balance: 500 })
 
-      // @ts-expect-error — intentionally passing invalid value
-      const result = await run(vouchersService.purchase(15))
+      const result = await run(vouchersService.purchase(15 as never))
 
       expect(result.data).toBeNull()
       expect(result.error).toMatch(/Invalid denomination/)

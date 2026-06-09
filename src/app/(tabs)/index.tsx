@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 
 import { walletService } from '@/api/wallet.service'
-import { TransactionRow } from '@/components/TransactionRow'
+import { TransactionRow } from '@/components/wallet/TransactionRow'
 import { useWalletStore } from '@/store/walletStore'
 import { Transaction } from '@/types'
 
