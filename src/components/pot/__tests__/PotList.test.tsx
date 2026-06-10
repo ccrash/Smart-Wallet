@@ -35,6 +35,13 @@ const BASE_STATE = {
 
 const HOLIDAY_POT = { id: 'pot-1', name: 'Holiday', balance: 75, createdAt: '' }
 
+// Types a value into a TextInput and waits for the controlled state to sync
+async function typeInto(placeholder: string, value: string) {
+  const input = await screen.findByPlaceholderText(placeholder)
+  fireEvent.changeText(input, value)
+  await waitFor(() => expect(screen.getByDisplayValue(value)).toBeTruthy())
+}
+
 describe('PotList', () => {
   beforeAll(() => jest.useRealTimers())
   afterAll(()  => jest.useFakeTimers())
@@ -46,7 +53,10 @@ describe('PotList', () => {
     ;(potsService.list as jest.Mock).mockResolvedValue({ data: [], error: null })
   })
 
-  afterEach(() => jest.clearAllMocks())
+  afterEach(() => {
+    jest.clearAllMocks()
+    jest.restoreAllMocks()
+  })
 
   // ─── Create ──────────────────────────────────────────────────────────────────
 
@@ -59,10 +69,7 @@ describe('PotList', () => {
       await screen.findByText('No pots yet')
 
       fireEvent.press(screen.getByText('New pot'))
-      fireEvent.changeText(
-        await screen.findByPlaceholderText('Pot name (e.g. Holiday)'),
-        'Emergency',
-      )
+      await typeInto('Pot name (e.g. Holiday)', 'Emergency')
       fireEvent.press(screen.getByText('Confirm'))
 
       await waitFor(() => {
@@ -79,10 +86,7 @@ describe('PotList', () => {
       await screen.findByText('No pots yet')
 
       fireEvent.press(screen.getByText('New pot'))
-      fireEvent.changeText(
-        await screen.findByPlaceholderText('Pot name (e.g. Holiday)'),
-        '   ',
-      )
+      await typeInto('Pot name (e.g. Holiday)', 'x')
       fireEvent.press(screen.getByText('Confirm'))
 
       expect(await screen.findByText('Name is required.')).toBeTruthy()
@@ -93,11 +97,14 @@ describe('PotList', () => {
   // ─── Deposit ─────────────────────────────────────────────────────────────────
 
   describe('deposit', () => {
-    it('updates pot balance, applies a debit transaction, and closes modal on success', async () => {
+    beforeEach(() => {
       const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
       ;(useWalletStore as unknown as jest.Mock).mockImplementation(
         (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
       )
+    })
+
+    it('updates pot balance, applies a debit transaction, and closes modal on success', async () => {
       ;(potsService.deposit as jest.Mock).mockResolvedValue({
         data: { pot: { ...HOLIDAY_POT, balance: 125 }, debitAmount: 50 },
         error: null,
@@ -105,10 +112,7 @@ describe('PotList', () => {
 
       await render(<PotList />)
       fireEvent.press(await screen.findByText('Add'))
-      fireEvent.changeText(
-        await screen.findByPlaceholderText('Amount (e.g. 50.00)'),
-        '50',
-      )
+      await typeInto('Amount (e.g. 50.00)', '50')
       fireEvent.press(screen.getByText('Confirm'))
 
       await waitFor(() => {
@@ -127,17 +131,13 @@ describe('PotList', () => {
     })
 
     it('shows field error on failure', async () => {
-      const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
-      ;(useWalletStore as unknown as jest.Mock).mockImplementation(
-        (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
-      )
       ;(potsService.deposit as jest.Mock).mockResolvedValue({
         data: null, error: 'Insufficient balance.',
       })
 
       await render(<PotList />)
       fireEvent.press(await screen.findByText('Add'))
-      fireEvent.changeText(await screen.findByPlaceholderText('Amount (e.g. 50.00)'), '999')
+      await typeInto('Amount (e.g. 50.00)', '999')
       fireEvent.press(screen.getByText('Confirm'))
 
       expect(await screen.findByText('Insufficient balance.')).toBeTruthy()
@@ -148,11 +148,14 @@ describe('PotList', () => {
   // ─── Withdraw ────────────────────────────────────────────────────────────────
 
   describe('withdraw', () => {
-    it('updates pot balance, applies a credit transaction, and closes modal on success', async () => {
+    beforeEach(() => {
       const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
       ;(useWalletStore as unknown as jest.Mock).mockImplementation(
         (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
       )
+    })
+
+    it('updates pot balance, applies a credit transaction, and closes modal on success', async () => {
       ;(potsService.withdraw as jest.Mock).mockResolvedValue({
         data: { pot: { ...HOLIDAY_POT, balance: 25 }, creditAmount: 50 },
         error: null,
@@ -160,7 +163,7 @@ describe('PotList', () => {
 
       await render(<PotList />)
       fireEvent.press(await screen.findByText('Take out'))
-      fireEvent.changeText(await screen.findByPlaceholderText('Amount (e.g. 50.00)'), '50')
+      await typeInto('Amount (e.g. 25.00)', '50')
       fireEvent.press(screen.getByText('Confirm'))
 
       await waitFor(() => {
@@ -179,17 +182,13 @@ describe('PotList', () => {
     })
 
     it('shows field error on failure', async () => {
-      const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
-      ;(useWalletStore as unknown as jest.Mock).mockImplementation(
-        (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
-      )
       ;(potsService.withdraw as jest.Mock).mockResolvedValue({
         data: null, error: 'Amount exceeds pot balance.',
       })
 
       await render(<PotList />)
       fireEvent.press(await screen.findByText('Take out'))
-      fireEvent.changeText(await screen.findByPlaceholderText('Amount (e.g. 50.00)'), '999')
+      await typeInto('Amount (e.g. 25.00)', '999')
       fireEvent.press(screen.getByText('Confirm'))
 
       expect(await screen.findByText('Amount exceeds pot balance.')).toBeTruthy()
@@ -200,13 +199,15 @@ describe('PotList', () => {
   // ─── Delete ──────────────────────────────────────────────────────────────────
 
   describe('delete', () => {
-    it('shows refund message in alert when pot has balance', async () => {
-      const alertSpy = jest.spyOn(Alert, 'alert')
+    beforeEach(() => {
       const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
       ;(useWalletStore as unknown as jest.Mock).mockImplementation(
         (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
       )
+    })
 
+    it('shows refund message in alert when pot has balance', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert')
       await render(<PotList />)
       fireEvent.press(await screen.findByLabelText('Delete Holiday'))
 
@@ -220,9 +221,9 @@ describe('PotList', () => {
     it('shows empty message in alert when pot has no balance', async () => {
       const alertSpy = jest.spyOn(Alert, 'alert')
       const emptyPot = { ...HOLIDAY_POT, balance: 0 }
-      const stateWithPot = { ...BASE_STATE, pots: [emptyPot] }
+      const stateEmpty = { ...BASE_STATE, pots: [emptyPot] }
       ;(useWalletStore as unknown as jest.Mock).mockImplementation(
-        (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
+        (selector: (s: typeof stateEmpty) => unknown) => selector(stateEmpty),
       )
 
       await render(<PotList />)
@@ -238,9 +239,9 @@ describe('PotList', () => {
     it('calls remove and removePot on confirm — no refund transaction when balance is zero', async () => {
       const alertSpy = jest.spyOn(Alert, 'alert')
       const emptyPot = { ...HOLIDAY_POT, balance: 0 }
-      const stateWithPot = { ...BASE_STATE, pots: [emptyPot] }
+      const stateEmpty = { ...BASE_STATE, pots: [emptyPot] }
       ;(useWalletStore as unknown as jest.Mock).mockImplementation(
-        (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
+        (selector: (s: typeof stateEmpty) => unknown) => selector(stateEmpty),
       )
       ;(potsService.remove as jest.Mock).mockResolvedValue({ data: { refundAmount: 0 }, error: null })
 
@@ -250,19 +251,17 @@ describe('PotList', () => {
       const [, , buttons] = alertSpy.mock.calls[0] as [
         string, string, { style?: string; onPress?: () => void }[],
       ]
-      await act(async () => buttons.find((b) => b.style === 'destructive')?.onPress?.())
+      act(() => { buttons.find((b) => b.style === 'destructive')?.onPress?.() })
 
-      expect(potsService.remove).toHaveBeenCalledWith('pot-1')
-      expect(mockRemovePot).toHaveBeenCalledWith('pot-1')
+      await waitFor(() => {
+        expect(potsService.remove).toHaveBeenCalledWith('pot-1')
+        expect(mockRemovePot).toHaveBeenCalledWith('pot-1')
+      })
       expect(mockApplyTransaction).not.toHaveBeenCalled()
     })
 
     it('applies a refund transaction when pot had balance', async () => {
       const alertSpy = jest.spyOn(Alert, 'alert')
-      const stateWithPot = { ...BASE_STATE, pots: [HOLIDAY_POT] }
-      ;(useWalletStore as unknown as jest.Mock).mockImplementation(
-        (selector: (s: typeof stateWithPot) => unknown) => selector(stateWithPot),
-      )
       ;(potsService.remove as jest.Mock).mockResolvedValue({ data: { refundAmount: 75 }, error: null })
 
       await render(<PotList />)
@@ -271,17 +270,19 @@ describe('PotList', () => {
       const [, , buttons] = alertSpy.mock.calls[0] as [
         string, string, { style?: string; onPress?: () => void }[],
       ]
-      await act(async () => buttons.find((b) => b.style === 'destructive')?.onPress?.())
+      act(() => { buttons.find((b) => b.style === 'destructive')?.onPress?.() })
 
-      expect(mockApplyTransaction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id:          'test-tx-id',
-          type:        'pot_withdrawal',
-          amount:      75,
-          description: 'Holiday pot closed',
-        }),
-      )
-      expect(mockRemovePot).toHaveBeenCalledWith('pot-1')
+      await waitFor(() => {
+        expect(mockApplyTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({
+            id:          'test-tx-id',
+            type:        'pot_withdrawal',
+            amount:      75,
+            description: 'Holiday pot closed',
+          }),
+        )
+        expect(mockRemovePot).toHaveBeenCalledWith('pot-1')
+      })
     })
   })
 })
