@@ -14,6 +14,9 @@ jest.mock('@/api/pots.service', () => ({
 jest.mock('@/api/client', () => ({
   generateId: jest.fn().mockReturnValue('test-tx-id'),
 }))
+jest.mock('@/components/FloatingTabBar', () => ({
+  useTabBarPadding: jest.fn().mockReturnValue(0),
+}))
 
 import { useWalletStore } from '@/store/walletStore'
 import { potsService } from '@/api/pots.service'
@@ -283,6 +286,25 @@ describe('PotList', () => {
         )
         expect(mockRemovePot).toHaveBeenCalledWith('pot-1')
       })
+    })
+
+    it('does not call removePot when the delete service returns an error', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert')
+      ;(potsService.remove as jest.Mock).mockResolvedValue({ data: null, error: 'Something went wrong.' })
+
+      await render(<PotList />)
+      fireEvent.press(await screen.findByLabelText('Delete Holiday'))
+
+      const [, , buttons] = alertSpy.mock.calls[0] as [
+        string, string, { style?: string; onPress?: () => void }[],
+      ]
+      act(() => { buttons.find((b) => b.style === 'destructive')?.onPress?.() })
+
+      await waitFor(() => {
+        expect(potsService.remove).toHaveBeenCalledWith('pot-1')
+      })
+      expect(mockRemovePot).not.toHaveBeenCalled()
+      expect(mockApplyTransaction).not.toHaveBeenCalled()
     })
   })
 })

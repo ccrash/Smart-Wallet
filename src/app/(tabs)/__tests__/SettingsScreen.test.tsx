@@ -10,6 +10,7 @@ import SettingsScreen from '../settings'
 jest.mock('@/store/authStore',  () => ({ useAuthStore:  jest.fn() }))
 jest.mock('@/store/themeStore', () => ({ useThemeStore: jest.fn() }))
 jest.mock('@/store/walletStore',() => ({ useWalletStore:jest.fn() }))
+jest.mock('@/components/FloatingTabBar', () => ({ useTabBarPadding: jest.fn().mockReturnValue(0) }))
 
 const MOCK_USER = { id: 'u1', displayName: 'Alex Johnson', email: 'alex@example.com', photoURL: null }
 

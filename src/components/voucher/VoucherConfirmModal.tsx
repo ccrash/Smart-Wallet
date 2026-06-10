@@ -34,6 +34,7 @@ export function VoucherConfirmModal({
       visible={visible}
       animationType="slide"
       transparent
+      accessibilityViewIsModal
       onRequestClose={onClose}>
       <View className="flex-1">
         <Pressable className="flex-1 bg-black/40" onPress={onClose} />
@@ -44,7 +45,12 @@ export function VoucherConfirmModal({
             <Text className="text-lg font-semibold text-black dark:text-white">
               Confirm purchase
             </Text>
-            <Pressable onPress={onClose} hitSlop={8} className="active:opacity-50">
+            <Pressable
+              onPress={onClose}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              className="active:opacity-50">
               <Ionicons name="close" size={22} color="#9ca3af" />
             </Pressable>
           </View>
@@ -80,6 +86,9 @@ export function VoucherConfirmModal({
               <Pressable
                 onPress={onConfirm}
                 disabled={isSubmitting}
+                accessibilityRole="button"
+                accessibilityLabel={isSubmitting ? 'Processing purchase' : `Buy for £${product?.denomination.toFixed(2)}`}
+                accessibilityState={{ disabled: isSubmitting }}
                 className="bg-primary rounded-2xl py-4 items-center active:opacity-75 disabled:opacity-40">
                 {isSubmitting
                   ? <ActivityIndicator size="small" color="white" />

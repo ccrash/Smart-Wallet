@@ -52,6 +52,7 @@ export function PotActionModal({
       visible={mode !== null}
       animationType="slide"
       transparent
+      accessibilityViewIsModal
       onRequestClose={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -66,7 +67,12 @@ export function PotActionModal({
               {config?.title}
               {selectedPot ? ` — ${selectedPot.name}` : ''}
             </Text>
-            <Pressable onPress={onClose} hitSlop={8} className="active:opacity-50">
+            <Pressable
+              onPress={onClose}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              className="active:opacity-50">
               <Ionicons name="close" size={22} color="#9ca3af" />
             </Pressable>
           </View>
@@ -77,6 +83,7 @@ export function PotActionModal({
             placeholder={config?.placeholder ?? ''}
             placeholderTextColor="#9ca3af"
             keyboardType={config?.keyboardType ?? 'default'}
+            accessibilityLabel={config?.title ?? 'Enter value'}
             autoFocus
             returnKeyType="done"
             onSubmitEditing={onSubmit}
@@ -90,6 +97,9 @@ export function PotActionModal({
           <Pressable
             onPress={onSubmit}
             disabled={isSubmitting || inputValue.trim() === ''}
+            accessibilityRole="button"
+            accessibilityLabel={isSubmitting ? 'Processing' : 'Confirm'}
+            accessibilityState={{ disabled: isSubmitting || inputValue.trim() === '' }}
             className="mt-4 bg-primary rounded-2xl py-4 items-center active:opacity-75 disabled:opacity-40">
             {isSubmitting
               ? <ActivityIndicator size="small" color="white" />

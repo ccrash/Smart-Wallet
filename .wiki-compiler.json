@@ -1,0 +1,22 @@
+{
+  "name": "Smart Wallet",
+  "mode": "codebase",
+  "sources": ["src"],
+  "output": "wiki",
+  "exclude": ["node_modules", "wiki"],
+  "knowledge_files": ["CLAUDE.md", "AGENTS.md", "package.json", "README.md"],
+  "deep_scan": true,
+  "code_extensions": [".ts", ".tsx"],
+  "link_style": "markdown",
+  "topic_hints": [
+    "project-overview",
+    "auth",
+    "wallet-core",
+    "pots",
+    "voucher-shop",
+    "loyalty-rewards",
+    "transport-layer",
+    "component-architecture",
+    "testing"
+  ]
+}

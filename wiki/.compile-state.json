@@ -1,0 +1,16 @@
+{
+  "last_compiled": "2026-06-10",
+  "topics": [
+    "project-overview",
+    "auth",
+    "wallet-core",
+    "pots",
+    "voucher-shop",
+    "loyalty-rewards",
+    "transport-layer",
+    "component-architecture",
+    "testing"
+  ],
+  "source_locations": ["src"],
+  "total_sources_scanned": 65
+}

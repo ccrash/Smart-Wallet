@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 
 import { generateId } from '@/api/client'
 import { potsService } from '@/api/pots.service'
+import { useTabBarPadding } from '@/components/FloatingTabBar'
 import { useWalletStore } from '@/store/walletStore'
 import { Pot } from '@/types'
 
@@ -17,6 +18,8 @@ export function PotList() {
   const removePot        = useWalletStore((s) => s.removePot)
   const applyTransaction = useWalletStore((s) => s.applyTransaction)
   const displayPots      = useWalletStore((s) => s.pots)
+
+  const tabPad = useTabBarPadding()
 
   const [isLoading,    setIsLoading]    = useState(true)
   const [modalMode,    setModalMode]    = useState<PotModalMode | null>(null)
@@ -128,10 +131,12 @@ export function PotList() {
 
   return (
     <>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: tabPad }}>
 
         <Pressable
           onPress={() => openModal('create')}
+          accessibilityRole="button"
+          accessibilityLabel="Create a new pot"
           className="flex-row items-center justify-center gap-2 bg-primary rounded-2xl py-4 active:opacity-75">
           <Ionicons name="add-circle-outline" size={20} color="white" />
           <Text className="text-base font-semibold text-white">New pot</Text>

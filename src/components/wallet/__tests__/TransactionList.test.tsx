@@ -1,7 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react-native'
 
-import WalletScreen from '../index'
-
 jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
 jest.mock('@/api/wallet.service', () => ({
   walletService: { getTransactions: jest.fn() },
@@ -9,6 +7,8 @@ jest.mock('@/api/wallet.service', () => ({
 
 import { useWalletStore } from '@/store/walletStore'
 import { walletService } from '@/api/wallet.service'
+
+import { TransactionList } from '../TransactionList'
 
 const mockGetTransactions = walletService.getTransactions as jest.Mock
 
@@ -22,12 +22,10 @@ const MOCK_TX = {
 }
 
 const BASE_STATE = {
-  balance: 500,
-  pots: [],
   transactions: [],
 }
 
-describe('WalletScreen', () => {
+describe('TransactionList', () => {
   beforeAll(() => jest.useRealTimers())
   afterAll(() => jest.useFakeTimers())
 
@@ -41,35 +39,10 @@ describe('WalletScreen', () => {
     })
   })
 
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
-
-  it('renders the wallet balance', async () => {
-    await render(<WalletScreen />)
-    expect(await screen.findByText('£500.00')).toBeTruthy()
-  })
-
-  it('shows pot summary when pots have money', async () => {
-    const stateWithPots = {
-      ...BASE_STATE,
-      pots: [{ id: 'p1', name: 'Holiday', balance: 100, createdAt: '' }],
-    }
-    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof stateWithPots) => unknown) =>
-      selector(stateWithPots)
-    )
-    await render(<WalletScreen />)
-    expect(await screen.findByText('£100.00 in 1 pot')).toBeTruthy()
-  })
-
-  it('hides pot summary when there are no pots', async () => {
-    await render(<WalletScreen />)
-    await screen.findByText('£500.00') // wait for load
-    expect(screen.queryByText(/in \d+ pot/)).toBeNull()
-  })
+  afterEach(() => jest.clearAllMocks())
 
   it('shows empty state when there are no transactions', async () => {
-    await render(<WalletScreen />)
+    await render(<TransactionList />)
     expect(await screen.findByText('No transactions yet')).toBeTruthy()
   })
 
@@ -78,7 +51,7 @@ describe('WalletScreen', () => {
       data: { items: [MOCK_TX], hasMore: false },
       error: null,
     })
-    await render(<WalletScreen />)
+    await render(<TransactionList />)
     expect(await screen.findByText('Welcome bonus')).toBeTruthy()
     expect(screen.getByText('+£500.00')).toBeTruthy()
     expect(screen.getByText('£500.00 bal')).toBeTruthy()
@@ -89,22 +62,41 @@ describe('WalletScreen', () => {
       data: { items: [MOCK_TX], hasMore: true },
       error: null,
     })
-    await render(<WalletScreen />)
+    await render(<TransactionList />)
     expect(await screen.findByText('Load more')).toBeTruthy()
   })
 
   it('fetches next page when Load more is pressed', async () => {
     const PAGE_1_TX = { ...MOCK_TX, id: 'tx-2' }
     mockGetTransactions
-      .mockResolvedValueOnce({ data: { items: [MOCK_TX],    hasMore: true  }, error: null })
-      .mockResolvedValueOnce({ data: { items: [PAGE_1_TX],  hasMore: false }, error: null })
+      .mockResolvedValueOnce({ data: { items: [MOCK_TX],   hasMore: true  }, error: null })
+      .mockResolvedValueOnce({ data: { items: [PAGE_1_TX], hasMore: false }, error: null })
 
-    await render(<WalletScreen />)
+    await render(<TransactionList />)
     const loadMore = await screen.findByText('Load more')
 
     fireEvent.press(loadMore)
-    await screen.findByText('Welcome bonus') // wait for re-render
+    await screen.findByText('Welcome bonus')
 
     expect(mockGetTransactions).toHaveBeenCalledWith(1)
+  })
+
+  it('shows loading spinner while loading more results', async () => {
+    // First page resolves normally; second page is a never-resolving promise
+    // so we can observe the intermediate isLoadingMore state.
+    let resolveSecondPage!: () => void
+    const secondPagePending = new Promise<void>((res) => { resolveSecondPage = res })
+
+    mockGetTransactions
+      .mockResolvedValueOnce({ data: { items: [MOCK_TX], hasMore: true }, error: null })
+      .mockReturnValueOnce(secondPagePending.then(() => ({ data: { items: [], hasMore: false }, error: null })))
+
+    await render(<TransactionList />)
+    fireEvent.press(await screen.findByText('Load more'))
+
+    // While second page is pending the spinner should be visible
+    expect(await screen.findByTestId('loading-more')).toBeTruthy()
+
+    resolveSecondPage()
   })
 })

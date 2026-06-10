@@ -64,9 +64,12 @@ export function TransactionList() {
             <Pressable
               onPress={() => loadPage(page + 1)}
               disabled={isLoadingMore}
+              accessibilityRole="button"
+              accessibilityLabel={isLoadingMore ? 'Loading more transactions' : 'Load more transactions'}
+              accessibilityState={{ disabled: isLoadingMore }}
               className="mt-3 py-3 items-center active:opacity-60">
               {isLoadingMore ? (
-                <ActivityIndicator size="small" color="#208AEF" />
+                <ActivityIndicator testID="loading-more" size="small" color="#208AEF" />
               ) : (
                 <Text className="text-sm text-primary font-medium">Load more</Text>
               )}

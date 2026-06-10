@@ -14,6 +14,9 @@ export function VoucherCard({ product, canAfford, onSelect }: Props) {
   return (
     <Pressable
       onPress={() => canAfford && onSelect(product)}
+      accessibilityRole="button"
+      accessibilityLabel={`${product.label}, ${product.pointsEarned} points earned`}
+      accessibilityState={{ disabled: !canAfford }}
       className={`flex-1 bg-white dark:bg-zinc-900 rounded-2xl p-4 active:opacity-75 ${!canAfford ? 'opacity-40' : ''}`}>
       <View className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 items-center justify-center mb-3">
         <Ionicons name="pricetag" size={20} color="#f97316" />

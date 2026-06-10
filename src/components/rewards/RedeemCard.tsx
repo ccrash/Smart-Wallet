@@ -87,6 +87,9 @@ export function RedeemCard() {
               onPress={decrement}
               disabled={redeemAmount <= POINTS_PER_UNIT}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Decrease redemption amount"
+              accessibilityState={{ disabled: redeemAmount <= POINTS_PER_UNIT }}
               className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-700 items-center justify-center active:opacity-60 disabled:opacity-30">
               <Ionicons name="remove" size={20} color="#208AEF" />
             </Pressable>
@@ -102,6 +105,9 @@ export function RedeemCard() {
               onPress={increment}
               disabled={redeemAmount >= maxRedeemable}
               hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Increase redemption amount"
+              accessibilityState={{ disabled: redeemAmount >= maxRedeemable }}
               className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-700 items-center justify-center active:opacity-60 disabled:opacity-30">
               <Ionicons name="add" size={20} color="#208AEF" />
             </Pressable>
@@ -131,6 +137,9 @@ export function RedeemCard() {
           <Pressable
             onPress={handleRedeem}
             disabled={!canRedeem || isSubmitting}
+            accessibilityRole="button"
+            accessibilityLabel={isSubmitting ? 'Processing redemption' : `Redeem ${redeemAmount} points for £${creditPreview.toFixed(2)}`}
+            accessibilityState={{ disabled: !canRedeem || isSubmitting }}
             className="bg-primary rounded-2xl py-4 items-center active:opacity-75 disabled:opacity-40">
             {isSubmitting
               ? <ActivityIndicator size="small" color="white" />

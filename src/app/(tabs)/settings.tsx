@@ -2,6 +2,7 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 
 import { Ionicons } from '@expo/vector-icons'
 
+import { useTabBarPadding } from '@/components/FloatingTabBar'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useWalletStore } from '@/store/walletStore'
@@ -21,6 +22,8 @@ export default function SettingsScreen() {
   const { preference, setPreference } = useThemeStore()
   const reset = useWalletStore((s) => s.reset)
   const seed  = useWalletStore((s) => s.seed)
+
+  const tabPad = useTabBarPadding()
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -50,7 +53,7 @@ export default function SettingsScreen() {
 
   return (
     <View className="flex-1 bg-gray-50 dark:bg-zinc-950">
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: tabPad }}>
 
         {/* Profile */}
         <View className="bg-white dark:bg-zinc-900 rounded-2xl p-4 flex-row items-center gap-4">
@@ -77,6 +80,9 @@ export default function SettingsScreen() {
                 <Pressable
                   key={opt.value}
                   onPress={() => setPreference(opt.value)}
+                  accessibilityRole="radio"
+                  accessibilityLabel={`${opt.label} theme`}
+                  accessibilityState={{ checked: active }}
                   className={`flex-1 items-center py-3 rounded-xl border ${
                     active
                       ? 'bg-primary border-primary'
@@ -99,6 +105,8 @@ export default function SettingsScreen() {
           </Text>
           <Pressable
             onPress={handleResetData}
+            accessibilityRole="button"
+            accessibilityLabel="Reset wallet data"
             className="flex-row items-center px-4 py-4 gap-3 active:opacity-60">
             <View className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-900/30 items-center justify-center">
               <Ionicons name="refresh" size={18} color="#f97316" />
@@ -118,6 +126,8 @@ export default function SettingsScreen() {
           </Text>
           <Pressable
             onPress={handleSignOut}
+            accessibilityRole="button"
+            accessibilityLabel="Sign out"
             className="flex-row items-center px-4 py-4 gap-3 active:opacity-60">
             <View className="w-9 h-9 rounded-full bg-red-100 dark:bg-red-900/30 items-center justify-center">
               <Ionicons name="log-out-outline" size={18} color="#ef4444" />

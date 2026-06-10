@@ -1,7 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native'
 
-import ShopScreen from '../shop'
-
 jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
 jest.mock('@/api/vouchers.service', () => ({
   VOUCHER_CATALOG: [
@@ -19,13 +17,14 @@ jest.mock('@/api/client', () => ({
 import { useWalletStore } from '@/store/walletStore'
 import { vouchersService } from '@/api/vouchers.service'
 
+import { VoucherCatalog } from '../VoucherCatalog'
+
 const mockAddVoucher       = jest.fn()
 const mockApplyTransaction = jest.fn()
 const mockSetLoyaltyPoints = jest.fn()
 
 const BASE_STATE = {
   balance: 500,
-  vouchers: [] as { id: string; denomination: number; code: string; purchasedAt: string; pointsEarned: number }[],
   loyaltyPoints: 0,
   addVoucher: mockAddVoucher,
   applyTransaction: mockApplyTransaction,
@@ -40,7 +39,7 @@ const MOCK_VOUCHER = {
   pointsEarned: 25,
 }
 
-describe('ShopScreen', () => {
+describe('VoucherCatalog', () => {
   beforeAll(() => jest.useRealTimers())
   afterAll(() => jest.useFakeTimers())
 
@@ -53,45 +52,23 @@ describe('ShopScreen', () => {
 
   afterEach(() => jest.clearAllMocks())
 
-  it('shows balance and loyalty points in header', async () => {
-    await render(<ShopScreen />)
-    expect(await screen.findByText('£500.00')).toBeTruthy()
-    expect(screen.getByText('0 pts · 1 pt per £1 spent')).toBeTruthy()
-  })
-
   it('renders all 4 denomination cards', async () => {
-    await render(<ShopScreen />)
+    await render(<VoucherCatalog />)
     expect(await screen.findByText('£10')).toBeTruthy()
     expect(screen.getByText('£25')).toBeTruthy()
     expect(screen.getByText('£50')).toBeTruthy()
     expect(screen.getByText('£100')).toBeTruthy()
   })
 
-  it('shows empty state when no vouchers purchased', async () => {
-    await render(<ShopScreen />)
-    expect(await screen.findByText('No vouchers yet')).toBeTruthy()
-  })
-
-  it('renders voucher history with code and points when vouchers exist', async () => {
-    const stateWithVouchers = { ...BASE_STATE, vouchers: [MOCK_VOUCHER] }
-    ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof stateWithVouchers) => unknown) =>
-      selector(stateWithVouchers)
-    )
-    await render(<ShopScreen />)
-    expect(await screen.findByText('£25 Voucher')).toBeTruthy()
-    expect(screen.getByText('SW-ABCD1234')).toBeTruthy()
-    expect(screen.getByText('+25 pts earned')).toBeTruthy()
-  })
-
   it('opens confirm modal with purchase summary when a card is pressed', async () => {
-    await render(<ShopScreen />)
+    await render(<VoucherCatalog />)
     fireEvent.press(await screen.findByText('£25'))
 
     expect(await screen.findByText('Confirm purchase')).toBeTruthy()
     expect(screen.getByText('£25 Voucher')).toBeTruthy()
-    expect(screen.getByText('£475.00')).toBeTruthy() // balance after = 500 - 25
-    // +25 pts appears on both the catalog card and the modal — assert both are present
-    expect(screen.getAllByText('+25 pts').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('£475.00')).toBeTruthy()
+    // accessibilityViewIsModal hides catalog content outside the modal from the a11y tree
+    expect(screen.getAllByText('+25 pts').length).toBeGreaterThanOrEqual(1)
   })
 
   it('does not open confirm modal when balance is insufficient', async () => {
@@ -99,14 +76,13 @@ describe('ShopScreen', () => {
     ;(useWalletStore as unknown as jest.Mock).mockImplementation((selector: (s: typeof brokenState) => unknown) =>
       selector(brokenState)
     )
-    await render(<ShopScreen />)
-    await screen.findByText('£5.00') // wait for render
-    fireEvent.press(screen.getByText('£10'))
+    await render(<VoucherCatalog />)
+    fireEvent.press(await screen.findByText('£10'))
     expect(screen.queryByText('Confirm purchase')).toBeNull()
   })
 
   it('calls purchase service and updates store on confirm', async () => {
-    await render(<ShopScreen />)
+    await render(<VoucherCatalog />)
     fireEvent.press(await screen.findByText('£25'))
     await screen.findByText('Confirm purchase')
 
@@ -123,7 +99,7 @@ describe('ShopScreen', () => {
   })
 
   it('shows success modal with voucher code after purchase', async () => {
-    await render(<ShopScreen />)
+    await render(<VoucherCatalog />)
     fireEvent.press(await screen.findByText('£25'))
     await screen.findByText('Confirm purchase')
 
@@ -137,7 +113,7 @@ describe('ShopScreen', () => {
   it('shows inline error when purchase fails', async () => {
     ;(vouchersService.purchase as jest.Mock).mockResolvedValue({ data: null, error: 'Insufficient balance.' })
 
-    await render(<ShopScreen />)
+    await render(<VoucherCatalog />)
     fireEvent.press(await screen.findByText('£25'))
     await screen.findByText('Confirm purchase')
 
@@ -145,5 +121,15 @@ describe('ShopScreen', () => {
 
     expect(await screen.findByText('Insufficient balance.')).toBeTruthy()
     expect(screen.queryByText('Voucher purchased!')).toBeNull()
+  })
+
+  it('closes the confirm modal when the close button is pressed', async () => {
+    await render(<VoucherCatalog />)
+    fireEvent.press(await screen.findByText('£25'))
+    await screen.findByText('Confirm purchase')
+
+    fireEvent.press(screen.getByText('close'))
+    expect(await screen.findByText('£25')).toBeTruthy()
+    expect(screen.queryByText('Confirm purchase')).toBeNull()
   })
 })

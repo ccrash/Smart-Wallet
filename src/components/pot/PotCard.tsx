@@ -21,6 +21,7 @@ export function PotCard({ pot, onDeposit, onWithdraw, onDelete }: Props) {
         <Pressable
           onPress={() => onDelete(pot)}
           hitSlop={8}
+          accessibilityRole="button"
           accessibilityLabel={`Delete ${pot.name}`}
           className="active:opacity-50">
           <Ionicons name="trash-outline" size={18} color="#9ca3af" />
@@ -35,12 +36,16 @@ export function PotCard({ pot, onDeposit, onWithdraw, onDelete }: Props) {
       <View className="flex-row gap-2">
         <Pressable
           onPress={() => onDeposit(pot)}
+          accessibilityRole="button"
+          accessibilityLabel={`Add money to ${pot.name}`}
           className="flex-1 flex-row items-center justify-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl py-2.5 active:opacity-70">
           <Ionicons name="add" size={16} color="#208AEF" />
           <Text className="text-sm font-semibold text-primary">Add</Text>
         </Pressable>
         <Pressable
           onPress={() => onWithdraw(pot)}
+          accessibilityRole="button"
+          accessibilityLabel={`Withdraw money from ${pot.name}`}
           className="flex-1 flex-row items-center justify-center gap-1.5 bg-gray-100 dark:bg-zinc-800 rounded-xl py-2.5 active:opacity-70">
           <Ionicons name="remove" size={16} color="#6b7280" />
           <Text className="text-sm font-semibold text-gray-600 dark:text-gray-400">Take out</Text>

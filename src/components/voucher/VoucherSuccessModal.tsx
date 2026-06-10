@@ -21,6 +21,7 @@ export function VoucherSuccessModal({ visible, voucher, onClose }: Props) {
       visible={visible}
       animationType="slide"
       transparent
+      accessibilityViewIsModal
       onRequestClose={onClose}>
       <View className="flex-1">
         <Pressable className="flex-1 bg-black/40" onPress={onClose} />
@@ -56,6 +57,8 @@ export function VoucherSuccessModal({ visible, voucher, onClose }: Props) {
 
           <Pressable
             onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Done"
             className="bg-primary rounded-2xl py-4 items-center active:opacity-75">
             <Text className="text-base font-semibold text-white">Done</Text>
           </Pressable>
