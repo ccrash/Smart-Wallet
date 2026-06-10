@@ -18,7 +18,11 @@ export function PotCard({ pot, onDeposit, onWithdraw, onDelete }: Props) {
         <View className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/30 items-center justify-center">
           <Ionicons name="layers" size={20} color="#8b5cf6" />
         </View>
-        <Pressable onPress={() => onDelete(pot)} hitSlop={8} className="active:opacity-50">
+        <Pressable
+          onPress={() => onDelete(pot)}
+          hitSlop={8}
+          accessibilityLabel={`Delete ${pot.name}`}
+          className="active:opacity-50">
           <Ionicons name="trash-outline" size={18} color="#9ca3af" />
         </Pressable>
       </View>
