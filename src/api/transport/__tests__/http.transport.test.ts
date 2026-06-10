@@ -5,15 +5,15 @@
 const MOCK_FETCH = jest.fn()
 
 describe('httpTransport', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   let t: { get: (...a: any[]) => Promise<any>; post: (...a: any[]) => Promise<any>; put: (...a: any[]) => Promise<any>; del: (...a: any[]) => Promise<any> }
 
   beforeAll(() => {
     global.fetch = MOCK_FETCH as unknown as typeof fetch
     process.env.EXPO_PUBLIC_API_URL = 'http://api.test'
     jest.resetModules()
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    t = require('@/api/transport/http.transport').httpTransport
+     
+    t = require('@/api/transport/http.transport').httpTransport // eslint-disable-line @typescript-eslint/no-require-imports
   })
 
   afterAll(() => {
@@ -121,10 +121,9 @@ describe('transport index — selects httpTransport when EXPO_PUBLIC_API_URL is 
   it('exports httpTransport when env var is present', () => {
     process.env.EXPO_PUBLIC_API_URL = 'http://api.test'
     jest.resetModules()
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { transport } = require('@/api/transport')
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { httpTransport } = require('@/api/transport/http.transport')
+     
+    const { transport } = require('@/api/transport') // eslint-disable-line @typescript-eslint/no-require-imports
+    const { httpTransport } = require('@/api/transport/http.transport') // eslint-disable-line @typescript-eslint/no-require-imports
     expect(transport).toBe(httpTransport)
     delete process.env.EXPO_PUBLIC_API_URL
     jest.resetModules()

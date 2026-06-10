@@ -1,14 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react-native'
 
-jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
-jest.mock('@/api/wallet.service', () => ({
-  walletService: { getTransactions: jest.fn() },
-}))
-
 import { useWalletStore } from '@/store/walletStore'
 import { walletService } from '@/api/wallet.service'
 
 import { TransactionList } from '../TransactionList'
+
+jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
+jest.mock('@/api/wallet.service', () => ({
+  walletService: { getTransactions: jest.fn() },
+}))
 
 const mockGetTransactions = walletService.getTransactions as jest.Mock
 

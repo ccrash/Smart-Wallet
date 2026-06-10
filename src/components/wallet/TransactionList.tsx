@@ -34,7 +34,7 @@ export function TransactionList() {
   }, [])
 
   useEffect(() => {
-    loadPage(0)
+    loadPage(0) // eslint-disable-line react-hooks/set-state-in-effect
   }, [txCount, loadPage])
 
   return (

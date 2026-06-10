@@ -1,5 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native'
 
+import { useWalletStore } from '@/store/walletStore'
+import { vouchersService } from '@/api/vouchers.service'
+
+import { VoucherCatalog } from '../VoucherCatalog'
+
 jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
 jest.mock('@/api/vouchers.service', () => ({
   VOUCHER_CATALOG: [
@@ -13,11 +18,6 @@ jest.mock('@/api/vouchers.service', () => ({
 jest.mock('@/api/client', () => ({
   generateId: jest.fn().mockReturnValue('test-tx-id'),
 }))
-
-import { useWalletStore } from '@/store/walletStore'
-import { vouchersService } from '@/api/vouchers.service'
-
-import { VoucherCatalog } from '../VoucherCatalog'
 
 const mockAddVoucher       = jest.fn()
 const mockApplyTransaction = jest.fn()

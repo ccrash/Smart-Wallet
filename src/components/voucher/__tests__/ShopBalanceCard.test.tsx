@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react-native'
 
-jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
-
 import { useWalletStore } from '@/store/walletStore'
 
 import { ShopBalanceCard } from '../ShopBalanceCard'
+
+jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
 
 const BASE_STATE = {
   balance: 500,

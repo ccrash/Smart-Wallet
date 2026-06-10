@@ -1,3 +1,5 @@
+import { useWalletStore } from '../walletStore'
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem:    jest.fn(() => Promise.resolve(null)),
   setItem:    jest.fn(() => Promise.resolve()),
@@ -5,8 +7,6 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   multiGet:   jest.fn(() => Promise.resolve([])),
   getAllKeys:  jest.fn(() => Promise.resolve([])),
 }))
-
-import { useWalletStore } from '../walletStore'
 
 const tx = (id: string, amount: number) => ({
   id,

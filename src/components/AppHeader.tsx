@@ -1,15 +1,15 @@
-import { View, Text } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore'
 
 export function AppHeader() {
-  const insets = useSafeAreaInsets();
-  const user = useAuthStore((s) => s.user);
+  const insets = useSafeAreaInsets()
+  const user = useAuthStore((s) => s.user)
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : '?';
+    : '?'
 
   return (
     <View
@@ -27,5 +27,5 @@ export function AppHeader() {
         </View>
       </View>
     </View>
-  );
+  )
 }

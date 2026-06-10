@@ -148,8 +148,8 @@ export function PotList() {
           </View>
         ) : displayPots.length === 0 ? (
           <View className="py-12 items-center">
-            <View className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/30 items-center justify-center mb-4">
-              <Ionicons name="layers-outline" size={30} color="#8b5cf6" />
+            <View className="w-16 h-16 rounded-full bg-gray-100 dark:bg-zinc-800 items-center justify-center mb-4">
+              <Ionicons name="layers-outline" size={30} color="#9ca3af" />
             </View>
             <Text className="text-sm font-medium text-black dark:text-white">No pots yet</Text>
             <Text className="text-xs text-gray-400 mt-1 text-center">

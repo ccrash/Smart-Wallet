@@ -11,44 +11,78 @@ type Props = {
   onDelete: (pot: Pot) => void
 }
 
+const POT_COLORS = [
+  '#6366f1', // indigo
+  '#10b981', // emerald
+  '#f59e0b', // amber
+  '#ef4444', // coral
+  '#3b82f6', // blue
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#14b8a6', // teal
+  '#f97316', // orange
+  '#06b6d4', // cyan
+]
+
+function potColor(id: string): string {
+  const hash = id.split('').reduce((n, c) => n + c.charCodeAt(0), 0)
+  return POT_COLORS[hash % POT_COLORS.length]
+}
+
 export function PotCard({ pot, onDeposit, onWithdraw, onDelete }: Props) {
+  const color = potColor(pot.id)
+
   return (
-    <View className="bg-white dark:bg-zinc-900 rounded-2xl p-4">
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="w-10 h-10 rounded-full bg-violet-100 dark:bg-violet-900/30 items-center justify-center">
-          <Ionicons name="layers" size={20} color="#8b5cf6" />
+    <View style={{ backgroundColor: color }} className="rounded-2xl p-4">
+      {/* Header: icon + name + trash */}
+      <View className="flex-row items-center mb-5">
+        <View
+          className="w-8 h-8 rounded-xl items-center justify-center mr-2.5"
+          style={{ backgroundColor: 'rgba(255,255,255,0.22)' }}>
+          <Ionicons name="layers" size={16} color="white" />
         </View>
+        <Text
+          className="flex-1 text-sm font-semibold"
+          style={{ color: 'rgba(255,255,255,0.88)' }}
+          numberOfLines={1}>
+          {pot.name}
+        </Text>
         <Pressable
           onPress={() => onDelete(pot)}
-          hitSlop={8}
+          hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel={`Delete ${pot.name}`}
           className="active:opacity-50">
-          <Ionicons name="trash-outline" size={18} color="#9ca3af" />
+          <Ionicons name="trash-outline" size={17} color="rgba(255,255,255,0.55)" />
         </Pressable>
       </View>
 
-      <Text className="text-base font-semibold text-black dark:text-white">{pot.name}</Text>
-      <Text className="text-3xl font-bold text-black dark:text-white mt-1 mb-4">
+      {/* Balance */}
+      <Text className="text-white text-3xl font-bold tracking-tight mb-5">
         £{pot.balance.toFixed(2)}
       </Text>
 
+      {/* Actions */}
       <View className="flex-row gap-2">
         <Pressable
           onPress={() => onDeposit(pot)}
           accessibilityRole="button"
           accessibilityLabel={`Add money to ${pot.name}`}
-          className="flex-1 flex-row items-center justify-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-xl py-2.5 active:opacity-70">
-          <Ionicons name="add" size={16} color="#208AEF" />
-          <Text className="text-sm font-semibold text-primary">Add</Text>
+          style={{ backgroundColor: 'rgba(255,255,255,0.26)' }}
+          className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-2.5 active:opacity-70">
+          <Ionicons name="add" size={16} color="white" />
+          <Text className="text-sm font-semibold text-white">Add</Text>
         </Pressable>
         <Pressable
           onPress={() => onWithdraw(pot)}
           accessibilityRole="button"
           accessibilityLabel={`Withdraw money from ${pot.name}`}
-          className="flex-1 flex-row items-center justify-center gap-1.5 bg-gray-100 dark:bg-zinc-800 rounded-xl py-2.5 active:opacity-70">
-          <Ionicons name="remove" size={16} color="#6b7280" />
-          <Text className="text-sm font-semibold text-gray-600 dark:text-gray-400">Take out</Text>
+          style={{ backgroundColor: 'rgba(255,255,255,0.13)' }}
+          className="flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-2.5 active:opacity-70">
+          <Ionicons name="remove" size={16} color="rgba(255,255,255,0.85)" />
+          <Text className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.85)' }}>
+            Take out
+          </Text>
         </Pressable>
       </View>
     </View>

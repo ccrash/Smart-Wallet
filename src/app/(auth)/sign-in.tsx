@@ -1,11 +1,11 @@
-import { View, Text, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
+import { View, Text, Pressable } from 'react-native'
+import { useRouter } from 'expo-router'
 
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/store/authStore'
 
 export default function SignInScreen() {
-  const router = useRouter();
-  const signIn = useAuthStore((s) => s.signIn);
+  const router = useRouter()
+  const signIn = useAuthStore((s) => s.signIn)
 
   function handleMockSignIn() {
     signIn({
@@ -13,8 +13,8 @@ export default function SignInScreen() {
       displayName: 'Alex Johnson',
       email: 'alex@example.com',
       photoURL: null,
-    });
-    router.replace('/(tabs)');
+    })
+    router.replace('/(tabs)')
   }
 
   return (
@@ -34,5 +34,5 @@ export default function SignInScreen() {
         Real OAuth coming soon
       </Text>
     </View>
-  );
+  )
 }

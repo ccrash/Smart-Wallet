@@ -1,6 +1,11 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native'
 import { Alert } from 'react-native'
 
+import { useWalletStore } from '@/store/walletStore'
+import { potsService } from '@/api/pots.service'
+
+import { PotList } from '../PotList'
+
 jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
 jest.mock('@/api/pots.service', () => ({
   potsService: {
@@ -17,11 +22,6 @@ jest.mock('@/api/client', () => ({
 jest.mock('@/components/FloatingTabBar', () => ({
   useTabBarPadding: jest.fn().mockReturnValue(0),
 }))
-
-import { useWalletStore } from '@/store/walletStore'
-import { potsService } from '@/api/pots.service'
-
-import { PotList } from '../PotList'
 
 const mockAddPot           = jest.fn()
 const mockUpdatePotBalance = jest.fn()

@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react-native'
 
-jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
-
 import { useWalletStore } from '@/store/walletStore'
 
 import { MyVouchers } from '../MyVouchers'
+
+jest.mock('@/store/walletStore', () => ({ useWalletStore: jest.fn() }))
 
 const BASE_STATE = {
   vouchers: [] as { id: string; denomination: number; code: string; purchasedAt: string; pointsEarned: number }[],
