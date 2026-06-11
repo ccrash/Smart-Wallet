@@ -9,7 +9,7 @@ describe('httpTransport', () => {
   let t: { get: (...a: any[]) => Promise<any>; post: (...a: any[]) => Promise<any>; put: (...a: any[]) => Promise<any>; del: (...a: any[]) => Promise<any> }
 
   beforeAll(() => {
-    global.fetch = MOCK_FETCH as unknown as typeof fetch
+    globalThis.fetch = MOCK_FETCH as unknown as typeof fetch
     process.env.EXPO_PUBLIC_API_URL = 'http://api.test'
     jest.resetModules()
      
