@@ -4,18 +4,24 @@ import { Ionicons } from '@expo/vector-icons'
 
 import { Voucher } from '@/types'
 
+import { voucherColor } from './voucherTheme'
+
 type Props = {
   voucher: Voucher
   isLast: boolean
 }
 
 export function VoucherHistoryRow({ voucher, isLast }: Props) {
+  const color = voucherColor(voucher.denomination)
+
   return (
     <View
       style={{ borderBottomWidth: isLast ? 0 : 1 }}
       className="flex-row items-center gap-3 px-4 py-3 border-gray-100 dark:border-zinc-800">
-      <View className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 items-center justify-center">
-        <Ionicons name="pricetag" size={18} color="#f97316" />
+      <View
+        className="w-10 h-10 rounded-full items-center justify-center"
+        style={{ backgroundColor: `${color}1F` }}>
+        <Ionicons name="pricetag" size={18} color={color} />
       </View>
       <View className="flex-1">
         <Text className="text-sm font-medium text-black dark:text-white">
