@@ -63,42 +63,42 @@ describe('PointsHeroCard', () => {
     expect(await screen.findByText(/50 \/ 100 pts to next £1/)).toBeTruthy()
   })
 
-  // ── Redeemable status ─────────────────────────────────────────────────────────
+  // ── Credit value / earn hint ──────────────────────────────────────────────────
 
-  it('shows "Earn more to redeem" at 0 pts', async () => {
+  it('shows "earn 100 more pts to redeem" at 0 pts', async () => {
     withPoints(0)
     await render(<PointsHeroCard />)
-    expect(await screen.findByText('Earn more to redeem')).toBeTruthy()
+    expect(await screen.findByText('earn 100 more pts to redeem')).toBeTruthy()
   })
 
-  it('shows "Earn more to redeem" at 99 pts (below 100-pt minimum)', async () => {
+  it('shows "earn 1 more pt to redeem" at 99 pts (singular)', async () => {
     withPoints(99)
     await render(<PointsHeroCard />)
-    expect(await screen.findByText('Earn more to redeem')).toBeTruthy()
+    expect(await screen.findByText('earn 1 more pt to redeem')).toBeTruthy()
   })
 
-  it('shows "100 redeemable" at exactly 100 pts', async () => {
+  it('shows "worth £1.00 in wallet credit" at exactly 100 pts', async () => {
     withPoints(100)
     await render(<PointsHeroCard />)
-    expect(await screen.findByText('100 redeemable')).toBeTruthy()
+    expect(await screen.findByText('worth £1.00 in wallet credit')).toBeTruthy()
   })
 
-  it('shows "100 redeemable" at 101 pts — the extra 1 pt carries into the next cycle', async () => {
+  it('shows "worth £1.00" at 101 pts — the extra 1 pt carries into the next cycle', async () => {
     withPoints(101)
     await render(<PointsHeroCard />)
-    expect(await screen.findByText('100 redeemable')).toBeTruthy()
+    expect(await screen.findByText('worth £1.00 in wallet credit')).toBeTruthy()
   })
 
-  it('shows "200 redeemable" at 250 pts', async () => {
+  it('shows "worth £2.00 in wallet credit" at 250 pts', async () => {
     withPoints(250)
     await render(<PointsHeroCard />)
-    expect(await screen.findByText('200 redeemable')).toBeTruthy()
+    expect(await screen.findByText('worth £2.00 in wallet credit')).toBeTruthy()
   })
 
-  it('shows no "redeemable" text when pts < 100 — shows "Earn more to redeem" instead', async () => {
+  it('shows no "worth" text when pts < 100 — shows the earn hint instead', async () => {
     withPoints(50)
     await render(<PointsHeroCard />)
-    await screen.findByText('Earn more to redeem') // wait for render to settle
-    expect(screen.queryByText(/redeemable/)).toBeNull()
+    await screen.findByText('earn 50 more pts to redeem') // wait for render to settle
+    expect(screen.queryByText(/worth £/)).toBeNull()
   })
 })

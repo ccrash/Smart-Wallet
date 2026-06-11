@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ActivityIndicator, Pressable, Text, View } from 'react-native'
 
 import { Ionicons } from '@expo/vector-icons'
+import { useRouter } from 'expo-router'
 
 import { generateId } from '@/api/client'
 import { loyaltyService } from '@/api/loyalty.service'
@@ -11,6 +12,7 @@ const POINTS_PER_UNIT = 100
 const CREDIT_PER_UNIT = 1
 
 export function RedeemCard() {
+  const router           = useRouter()
   const loyaltyPoints    = useWalletStore((s) => s.loyaltyPoints)
   const applyTransaction = useWalletStore((s) => s.applyTransaction)
   const setLoyaltyPoints = useWalletStore((s) => s.setLoyaltyPoints)
@@ -22,8 +24,34 @@ export function RedeemCard() {
   const [error, setError]               = useState('')
   const [successMsg, setSuccessMsg]     = useState('')
 
+  // Re-clamp when the balance changes while mounted (tabs keep screens alive):
+  // points arriving from a purchase enable the redeemer; points dropping clamp it.
+  useEffect(() => {
+    setRedeemAmount((prev) => {
+      if (maxRedeemable === 0) return 0
+      if (prev === 0) return POINTS_PER_UNIT
+      return Math.min(prev, maxRedeemable)
+    })
+  }, [maxRedeemable])
+
   const creditPreview = (redeemAmount / POINTS_PER_UNIT) * CREDIT_PER_UNIT
   const canRedeem     = redeemAmount > 0 && redeemAmount <= loyaltyPoints
+
+  const halfRedeemable = Math.max(
+    POINTS_PER_UNIT,
+    Math.floor(maxRedeemable / 2 / POINTS_PER_UNIT) * POINTS_PER_UNIT,
+  )
+  const quickOptions = [
+    { label: '100',  value: POINTS_PER_UNIT },
+    { label: 'Half', value: halfRedeemable },
+    { label: 'Max',  value: maxRedeemable },
+  ].filter((opt, i, arr) => arr.findIndex((o) => o.value === opt.value) === i)
+
+  function selectAmount(value: number) {
+    setError('')
+    setSuccessMsg('')
+    setRedeemAmount(value)
+  }
 
   function decrement() {
     setError('')
@@ -77,8 +105,15 @@ export function RedeemCard() {
           </View>
           <Text className="text-sm font-medium text-black dark:text-white">Not enough points yet</Text>
           <Text className="text-xs text-gray-400 mt-1 text-center">
-            You need at least {POINTS_PER_UNIT} pts to redeem. Keep shopping!
+            You need at least {POINTS_PER_UNIT} pts to redeem. Earn 1 pt per £1 spent on vouchers.
           </Text>
+          <Pressable
+            onPress={() => router.push('/(tabs)/shop')}
+            accessibilityRole="button"
+            accessibilityLabel="Browse vouchers"
+            className="mt-4 bg-primary rounded-2xl py-3 px-6 items-center active:opacity-75">
+            <Text className="text-sm font-semibold text-white">Browse vouchers</Text>
+          </Pressable>
         </View>
       ) : (
         <>
@@ -112,6 +147,34 @@ export function RedeemCard() {
               <Ionicons name="add" size={20} color="#208AEF" />
             </Pressable>
           </View>
+
+          {maxRedeemable > POINTS_PER_UNIT && (
+            <View className="flex-row gap-2 mb-3">
+              {quickOptions.map((opt) => {
+                const active = redeemAmount === opt.value
+                return (
+                  <Pressable
+                    key={opt.label}
+                    onPress={() => selectAmount(opt.value)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Set redemption to ${opt.value} points`}
+                    accessibilityState={{ selected: active }}
+                    className={`flex-1 items-center py-2 rounded-xl border ${
+                      active
+                        ? 'bg-primary border-primary'
+                        : 'bg-gray-50 dark:bg-zinc-800 border-gray-100 dark:border-zinc-700'
+                    } active:opacity-70`}>
+                    <Text
+                      className={`text-xs font-semibold ${
+                        active ? 'text-white' : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                )
+              })}
+            </View>
+          )}
 
           <View className="flex-row items-center justify-center gap-1 mb-4">
             <Ionicons name="arrow-forward" size={14} color="#9ca3af" />

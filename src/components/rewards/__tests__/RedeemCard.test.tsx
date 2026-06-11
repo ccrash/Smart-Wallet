@@ -13,6 +13,11 @@ jest.mock('@/api/client', () => ({
   generateId: jest.fn().mockReturnValue('test-tx-id'),
 }))
 
+const mockPush = jest.fn()
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: mockPush }),
+}))
+
 const mockApplyTransaction = jest.fn()
 const mockSetLoyaltyPoints = jest.fn()
 
@@ -40,6 +45,24 @@ describe('RedeemCard', () => {
     withPoints(99)
     await render(<RedeemCard />)
     expect(await screen.findByText('Not enough points yet')).toBeTruthy()
+  })
+
+  it('navigates to the shop when "Browse vouchers" is pressed in the empty state', async () => {
+    withPoints(0)
+    await render(<RedeemCard />)
+    fireEvent.press(await screen.findByLabelText('Browse vouchers'))
+    expect(mockPush).toHaveBeenCalledWith('/(tabs)/shop')
+  })
+
+  it('enables the redeemer when points arrive while mounted', async () => {
+    withPoints(0)
+    const { rerender } = await render(<RedeemCard />)
+    await screen.findByText('Not enough points yet')
+
+    withPoints(150)
+    rerender(<RedeemCard />)
+
+    expect(await screen.findByLabelText('Redeem 100 points for £1.00')).toBeTruthy()
   })
 
   // ── Redeemer UI initial state ─────────────────────────────────────────────────
@@ -92,6 +115,42 @@ describe('RedeemCard', () => {
     await screen.findByLabelText('Redeem 100 points for £1.00')
 
     expect(screen.getByLabelText('Decrease redemption amount').props.accessibilityState.disabled).toBe(true)
+  })
+
+  // ── Quick-select chips ────────────────────────────────────────────────────────
+
+  it('selects max, half, and minimum via the quick chips', async () => {
+    withPoints(500) // maxRedeemable = 500, half = 200
+    await render(<RedeemCard />)
+    await screen.findByLabelText('Redeem 100 points for £1.00')
+
+    fireEvent.press(screen.getByLabelText('Set redemption to 500 points'))
+    expect(await screen.findByLabelText('Redeem 500 points for £5.00')).toBeTruthy()
+
+    fireEvent.press(screen.getByLabelText('Set redemption to 200 points'))
+    expect(await screen.findByLabelText('Redeem 200 points for £2.00')).toBeTruthy()
+
+    fireEvent.press(screen.getByLabelText('Set redemption to 100 points'))
+    expect(await screen.findByLabelText('Redeem 100 points for £1.00')).toBeTruthy()
+  })
+
+  it('hides the quick chips when only one unit is redeemable', async () => {
+    withPoints(100)
+    await render(<RedeemCard />)
+    await screen.findByLabelText('Redeem 100 points for £1.00')
+
+    expect(screen.queryByText('Max')).toBeNull()
+    expect(screen.queryByText('Half')).toBeNull()
+  })
+
+  it('deduplicates chips when half equals the minimum (200 pts)', async () => {
+    withPoints(200) // maxRedeemable = 200, half = 100 → dedupes with the "100" chip
+    await render(<RedeemCard />)
+    await screen.findByLabelText('Redeem 100 points for £1.00')
+
+    expect(screen.getByLabelText('Set redemption to 100 points')).toBeTruthy()
+    expect(screen.getByLabelText('Set redemption to 200 points')).toBeTruthy()
+    expect(screen.queryByText('Half')).toBeNull()
   })
 
   // ── Successful redemption ─────────────────────────────────────────────────────
