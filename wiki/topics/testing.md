@@ -1,6 +1,6 @@
 ---
 topic: testing
-last_compiled: 2026-06-10
+last_compiled: 2026-06-11
 sources_count: 18
 status: active
 ---
@@ -8,9 +8,8 @@ status: active
 # Testing [coverage: high — 18 sources]
 
 ## Summary [coverage: high — 18 sources]
-The test suite uses Jest 29 + jest-expo + @testing-library/react-native 14. Tests are co-located with source files in `__tests__/` directories. 122 tests across 18 files. Overall coverage: **93.9% statements, 83.5% branches, 93.7% functions**.
+The test suite uses Jest 29 + jest-expo + @testing-library/react-native 14. Tests are co-located with source files in `__tests__/` directories. Tests are structured in three layers:
 
-Tests are structured in three layers:
 1. **Unit** — API services, transport layer, Zustand store (no React rendering)
 2. **Component** — each self-contained component tested in its own `__tests__/` file next to the source
 3. **Screen** — only `SettingsScreen` and `TabsLayout` remain at screen level (they test screen-specific concerns: auth guard, theme preferences, alert flows)
@@ -32,7 +31,7 @@ Screen-level tests for `WalletScreen`, `ShopScreen`, and `PotsScreen` were remov
 ### API & Transport
 | File | What it covers |
 |------|---------------|
-| `src/api/__tests__/auth.service.test.ts` | Auth service — sign-in + sign-out |
+| `src/api/__tests__/auth.service.test.ts` | Auth service — `signInMock` returns mock user; `signOut` resolves without error |
 | `src/api/__tests__/wallet.service.test.ts` | Balance + paginated transactions |
 | `src/api/__tests__/pots.service.test.ts` | Pot CRUD — 15 tests covering all business rules |
 | `src/api/__tests__/vouchers.service.test.ts` | Purchase — denomination validation, balance guard |
@@ -43,13 +42,13 @@ Screen-level tests for `WalletScreen`, `ShopScreen`, and `PotsScreen` were remov
 ### Store
 | File | What it covers |
 |------|---------------|
-| `src/store/__tests__/walletStore.test.ts` | seed, applyTransaction, reset, pot/voucher/loyalty actions |
+| `src/store/__tests__/walletStore.test.ts` | seed (idempotent), applyTransaction (debit/credit/ordering/runningBalance), reset (all fields zeroed, re-seed allowed), addPot/updatePotBalance/removePot, addVoucher (prepends), setLoyaltyPoints — 13 tests |
 
 ### Components — Wallet
 | File | What it covers |
 |------|---------------|
 | `src/components/wallet/__tests__/BalanceCard.test.tsx` | Balance display, pot summary, singular/plural |
-| `src/components/wallet/__tests__/TransactionList.test.tsx` | Empty state, rows, load-more pagination, loading spinner |
+| `src/components/wallet/__tests__/TransactionList.test.tsx` | Empty state, rows with amount + running balance, "Load more" button when hasMore, pagination (page 1 fetch), loading spinner (testID `loading-more`) while second page is in-flight — 5 tests |
 | `src/components/wallet/__tests__/TransactionRow.test.tsx` | Positive/negative amount formatting, isLast border |
 
 ### Components — Voucher
@@ -97,6 +96,8 @@ afterAll(()  => jest.useFakeTimers())
 ```
 Real timers are needed because mock transport uses `setTimeout(150ms)`. The `afterAll` restores fake timers so other test files aren't affected. Pure rendering tests (BalanceCard, ShopBalanceCard, etc.) don't need this — they only use `mockResolvedValue` which resolves via microtasks, unaffected by fake timers.
 
+`TransactionList.test.tsx` uses `beforeAll(() => jest.useRealTimers())` because it mocks `walletService.getTransactions` as a `mockResolvedValue` (microtask), but calls `afterAll(() => jest.useFakeTimers())` to restore the global state.
+
 ## Async Patterns [coverage: high — 2 sources]
 | Scenario | Pattern |
 |----------|---------|
@@ -105,6 +106,7 @@ Real timers are needed because mock transport uses `setTimeout(150ms)`. The `aft
 | Controlled input | `fireEvent.changeText(input, value)` + `await waitFor(() => screen.getByDisplayValue(value))` |
 | Alert confirm button | `act(() => buttons.find(b => b.style === 'destructive')?.onPress?.())` + `waitFor` |
 | Load-more spinner | testID `"loading-more"` on the `ActivityIndicator` inside TransactionList |
+| Pending promise (mid-flight) | `new Promise((res) => { resolveSecondPage = res })` — hold the promise unresolved to observe intermediate loading state, then call `await act(async () => { resolveSecondPage() })` |
 
 **Important:** This version of RNTL requires `await render(...)` even for synchronous components — `screen` is not populated until render's async setup completes. All tests use `await render`.
 
@@ -131,19 +133,14 @@ beforeAll(() => {
 ```
 The test covers: successful GET/POST/PUT/DELETE, non-ok response with `message` field, non-ok with JSON parse failure (falls back to `statusText`), network error (Error thrown), and non-Error thrown (returns `'Network error'`).
 
-## Coverage Summary [coverage: high — 18 sources]
-| Layer | Statements | Branches |
-|-------|-----------|---------|
-| api/ | 100% | 100% |
-| api/transport/ | 99.3% | 94.3% |
-| store/ | 100% | 87.5% |
-| components/wallet/ | 100% | 96.2% |
-| components/voucher/ | 98% | 91.7% |
-| components/pot/ | 98.6% | 91.7% |
-| app/(tabs)/ | 93.1% | 100% |
-| **Total** | **93.9%** | **83.5%** |
-
-Remaining uncovered: `FloatingTabBar.tsx` (animation + navigation harness needed), `_layout.tsx` lines 15–17 (JSX callback props passed to Expo Router), `walletStore.ts` line 112 (null-state rehydration path).
+## walletStore Test Coverage [coverage: high — 1 source]
+`walletStore.test.ts` covers 13 tests across 6 describe blocks:
+- **seed** (2): initialises £500 balance with seed tx; idempotent (second call adds nothing)
+- **applyTransaction** (4): deducts/credits balance; prepends (newest first); each tx carries correct runningBalance
+- **reset** (2): zeroes all fields (balance, transactions, pots, vouchers, loyaltyPoints, isSeeded); allows re-seeding after reset
+- **pot operations** (3): addPot appends; updatePotBalance mutates only matching pot; removePot removes only matching pot
+- **addVoucher** (1): prepends to vouchers list
+- **setLoyaltyPoints** (1): replaces points balance (not additive)
 
 ## PotList Test Coverage [coverage: high — 1 source]
 `PotList.test.tsx` is the most comprehensive component test (11 tests):

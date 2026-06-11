@@ -82,6 +82,25 @@ describe('walletStore', () => {
       expect(transactions[1].id).toBe('t1')
       expect(transactions[1].runningBalance).toBe(400)
     })
+
+    it('applies an overdraft transaction — the store is permissive; the service layer enforces the limit', () => {
+      useWalletStore.getState().applyTransaction(tx('t1', -600)) // 500 − 600 = −100
+      const { balance, transactions } = useWalletStore.getState()
+      expect(balance).toBe(-100)
+      expect(transactions[0].runningBalance).toBe(-100)
+    })
+
+    it('a zero-amount transaction leaves the balance unchanged', () => {
+      useWalletStore.getState().applyTransaction(tx('t1', 0))
+      expect(useWalletStore.getState().balance).toBe(500)
+      expect(useWalletStore.getState().transactions[0].runningBalance).toBe(500)
+    })
+
+    it('handles decimal transaction amounts without precision loss', () => {
+      useWalletStore.getState().applyTransaction(tx('t1', -25.5))
+      expect(useWalletStore.getState().balance).toBe(474.5)
+      expect(useWalletStore.getState().transactions[0].runningBalance).toBe(474.5)
+    })
   })
 
   // ─── reset ─────────────────────────────────────────────────────────────────

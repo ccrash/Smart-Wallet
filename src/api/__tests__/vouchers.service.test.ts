@@ -70,5 +70,23 @@ describe('vouchersService', () => {
       expect(result.error).toBeNull()
       expect(result.data!.denomination).toBe(10)
     })
+
+    it('returns error when balance is one below the denomination (£9 balance, £10 voucher)', async () => {
+      db.hydrate({ balance: 9 })
+
+      const result = await run(vouchersService.purchase(10))
+
+      expect(result.data).toBeNull()
+      expect(result.error).toBe('Insufficient balance.')
+    })
+
+    it('returns error when balance is zero', async () => {
+      db.hydrate({ balance: 0 })
+
+      const result = await run(vouchersService.purchase(10))
+
+      expect(result.data).toBeNull()
+      expect(result.error).toBe('Insufficient balance.')
+    })
   })
 })

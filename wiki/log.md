@@ -1,5 +1,12 @@
 # Compilation Log
 
+## 2026-06-11
+
+**Topics updated:** auth, component-architecture, testing, pots, wallet-core
+**New topics:** none
+**Sources scanned:** 65
+**Sources changed:** ~20 (authStore simplification, themeStore added, sign-in direct store call, AppHeader dark mode, TransactionList accessibility, walletStore expanded tests, TransactionList test expanded, PotsScreen.test.tsx removed)
+
 ## 2026-06-10 (update 3)
 
 **Topics updated:** testing, component-architecture, transport-layer

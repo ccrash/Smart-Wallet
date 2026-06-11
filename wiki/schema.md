@@ -26,3 +26,4 @@ _None identified on first compile. Re-run after adding more domain complexity._
 ## Evolution Log
 - **2026-06-10**: Initial schema generated from 9 topics, 0 concepts
 - **2026-06-10**: Updated `component-architecture` — added FloatingTabBar, useTabBarPadding hook, floating tab bar pattern; updated `project-overview` — navigation architecture now reflects custom tab bar and per-screen padding strategy
+- **2026-06-11**: Updated `auth` — sign-in flow changed to bypass authService; `component-architecture` — added themeStore; `pots` — removed stale PotsScreen reference; `testing` — walletStore and TransactionList test detail expanded

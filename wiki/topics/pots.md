@@ -1,13 +1,13 @@
 ---
 topic: pots
-last_compiled: 2026-06-10
-sources_count: 7
+last_compiled: 2026-06-11
+sources_count: 6
 status: active
 ---
 
-# Savings Pots [coverage: high — 7 sources]
+# Savings Pots [coverage: high — 6 sources]
 
-## Summary [coverage: high — 7 sources]
+## Summary [coverage: high — 6 sources]
 Savings pots let users ring-fence money into named buckets. Each pot tracks its own balance. Money deposited into a pot is debited from the main wallet; withdrawals credit it back. Deleting a pot with a positive balance automatically refunds the full amount to the wallet. The feature is implemented as a self-contained `PotList` component that owns all interaction state and communicates with the wallet via `walletStore` actions.
 
 ## Data Model [coverage: high — 1 source]
@@ -60,6 +60,9 @@ pots.tsx (thin shell)
 
 **`handleDelete`** — shows `Alert.alert` with a refund message if `pot.balance > 0`; on confirm, calls `potsService.remove`, optionally applies a `pot_withdrawal` transaction (if `refundAmount > 0`), then calls `removePot(id)`.
 
+## PotCard Visual [coverage: medium — 1 source]
+`PotCard` derives a color from the pot's `id` using a hash → index into a 10-color palette (indigo, emerald, amber, coral, blue, violet, pink, teal, orange, cyan). Each pot renders with a solid color background, the pot name in the header row, a delete (trash) icon, the £balance in large type, and Add / Take out action buttons styled as semi-transparent pills.
+
 ## Modal Config [coverage: medium — 1 source]
 | Mode | Title | Placeholder | Keyboard |
 |------|-------|-------------|---------|
@@ -70,18 +73,26 @@ pots.tsx (thin shell)
 ## Keyboard Handling [coverage: medium — 1 source]
 `PotActionModal` wraps content in `KeyboardAvoidingView` with `behavior: Platform.OS === 'ios' ? 'padding' : 'height'` — satisfies the task's keyboard avoidance requirement for input forms.
 
-## Testing [coverage: high — 2 sources]
-14 tests total across two files:
-- **`PotList.test.tsx`** (10 tests): create success/fail, deposit success/fail, withdraw success/fail, delete alert message variants (with/without balance), delete confirm with and without refund transaction
-- **`PotsScreen.test.tsx`** (4 tests): empty state, pot card rendering, modal open on "New pot", deposit modal open
+## Testing [coverage: high — 1 source]
+`PotList.test.tsx` — 11 tests covering full CRUD interaction:
+- Create success → `addPot` called, modal closes
+- Create failure → `fieldError` shown, modal stays open
+- Deposit success → `updatePotBalance` + `applyTransaction({ type: 'pot_deposit', amount: -N })`
+- Deposit failure → `fieldError` shown
+- Withdraw success → `updatePotBalance` + `applyTransaction({ type: 'pot_withdrawal', amount: N })`
+- Withdraw failure → `fieldError` shown
+- Delete alert: refund message when `balance > 0`
+- Delete alert: empty message when `balance === 0`
+- Delete confirm: `removePot` called, no transaction when `refundAmount === 0`
+- Delete confirm: `applyTransaction({ amount: 75 })` + `removePot` when `refundAmount > 0`
+- Delete service error: `removePot` NOT called when service returns `{ data: null }`
 
 Key testing pattern: `typeInto(placeholder, value)` helper — `fireEvent.changeText` + `waitFor(getByDisplayValue)` to flush controlled input state before pressing Confirm.
 
-## Sources [coverage: high — 7 sources]
+## Sources [coverage: high — 6 sources]
 - [src/api/pots.service.ts](../../src/api/pots.service.ts)
 - [src/types/index.ts](../../src/types/index.ts)
 - [src/components/pot/PotList.tsx](../../src/components/pot/PotList.tsx)
 - [src/components/pot/PotCard.tsx](../../src/components/pot/PotCard.tsx)
 - [src/components/pot/PotActionModal.tsx](../../src/components/pot/PotActionModal.tsx)
-- [src/app/(tabs)/pots.tsx](../../src/app/(tabs)/pots.tsx)
 - [src/components/pot/__tests__/PotList.test.tsx](../../src/components/pot/__tests__/PotList.test.tsx)

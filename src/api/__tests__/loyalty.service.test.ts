@@ -76,5 +76,53 @@ describe('loyaltyService', () => {
       expect(result.data).toBeNull()
       expect(result.error).toMatch(/greater than zero/)
     })
+
+    it('succeeds when balance exactly equals the redemption amount (full redemption → 0 remaining)', async () => {
+      db.hydrate({ loyaltyPoints: 100 })
+
+      const result = await run(loyaltyService.redeem(100))
+
+      expect(result.error).toBeNull()
+      expect(result.data!.creditAmount).toBe(1)
+      expect(result.data!.remainingPoints).toBe(0)
+    })
+
+    it('returns error when balance is one point below the redemption amount (99 pts, redeem 100)', async () => {
+      db.hydrate({ loyaltyPoints: 99 })
+
+      const result = await run(loyaltyService.redeem(100))
+
+      expect(result.data).toBeNull()
+      expect(result.error).toBe('Insufficient loyalty points.')
+    })
+
+    it('leaves 1 remaining point when redeeming 100 from a 101-point balance', async () => {
+      db.hydrate({ loyaltyPoints: 101 })
+
+      const result = await run(loyaltyService.redeem(100))
+
+      expect(result.error).toBeNull()
+      expect(result.data!.creditAmount).toBe(1)
+      expect(result.data!.remainingPoints).toBe(1)
+    })
+
+    it('redeems a large multiple (1000 pts → £10 credit, 0 remaining)', async () => {
+      db.hydrate({ loyaltyPoints: 1000 })
+
+      const result = await run(loyaltyService.redeem(1000))
+
+      expect(result.error).toBeNull()
+      expect(result.data!.creditAmount).toBe(10)
+      expect(result.data!.remainingPoints).toBe(0)
+    })
+
+    it('returns error for a large non-multiple of 100 (1001 pts)', async () => {
+      db.hydrate({ loyaltyPoints: 2000 })
+
+      const result = await run(loyaltyService.redeem(1001))
+
+      expect(result.data).toBeNull()
+      expect(result.error).toMatch(/multiples of 100/)
+    })
   })
 })

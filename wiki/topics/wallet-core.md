@@ -1,6 +1,6 @@
 ---
 topic: wallet-core
-last_compiled: 2026-06-10
+last_compiled: 2026-06-11
 sources_count: 8
 status: active
 ---
