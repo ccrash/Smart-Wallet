@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native'
+import { act, fireEvent, render, screen } from '@testing-library/react-native'
 
 import { useWalletStore } from '@/store/walletStore'
 import { walletService } from '@/api/wallet.service'
@@ -97,6 +97,6 @@ describe('TransactionList', () => {
     // While second page is pending the spinner should be visible
     expect(await screen.findByTestId('loading-more')).toBeTruthy()
 
-    resolveSecondPage()
+    await act(async () => { resolveSecondPage() })
   })
 })

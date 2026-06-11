@@ -6,5 +6,6 @@ const originalConsoleError = console.error.bind(console)
 // real console.error calls (actual component errors) still surface.
 console.error = (...args: Parameters<typeof console.error>) => {
   if (typeof args[0] === 'string' && args[0].includes('not configured to support act')) return
+  if (typeof args[0] === 'string' && args[0].includes('overlapping act() calls')) return
   originalConsoleError(...args)
 }
