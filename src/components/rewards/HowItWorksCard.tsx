@@ -19,7 +19,7 @@ const STEPS = [
   },
   {
     icon: 'wallet-outline' as const,
-    iconColor: '#208AEF',
+    iconColor: '#1C274C',
     bg: 'bg-blue-100 dark:bg-blue-900/30',
     title: 'Use your credit',
     body: 'Redeemed credit goes straight to your wallet balance — spend it on anything.',

@@ -1,9 +1,12 @@
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { Alert, Platform, Pressable, ScrollView, Switch, Text, View } from 'react-native'
 
 import { Ionicons } from '@expo/vector-icons'
+import * as LocalAuthentication from 'expo-local-authentication'
 
 import { useTabBarPadding } from '@/components/FloatingTabBar'
 import { useAuthStore } from '@/store/authStore'
+import { useSecurityStore } from '@/store/securityStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useWalletStore } from '@/store/walletStore'
 import { ThemePreference } from '@/types'
@@ -22,8 +25,43 @@ export default function SettingsScreen() {
   const { preference, setPreference } = useThemeStore()
   const reset = useWalletStore((s) => s.reset)
   const seed  = useWalletStore((s) => s.seed)
+  const biometricEnabled    = useSecurityStore((s) => s.biometricLockEnabled)
+  const setBiometricEnabled = useSecurityStore((s) => s.setBiometricLockEnabled)
+
+  const [biometricLabel, setBiometricLabel] = useState('Biometric unlock')
 
   const tabPad = useTabBarPadding()
+
+  useEffect(() => {
+    if (Platform.OS === 'web') return
+    LocalAuthentication.supportedAuthenticationTypesAsync()
+      .then((types) => {
+        if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION))
+          setBiometricLabel(Platform.OS === 'ios' ? 'Face ID' : 'Face unlock')
+        else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT))
+          setBiometricLabel(Platform.OS === 'ios' ? 'Touch ID' : 'Fingerprint unlock')
+      })
+      .catch(() => {})
+  }, [])
+
+  async function handleToggleBiometric(value: boolean) {
+    if (!value) {
+      setBiometricEnabled(false)
+      return
+    }
+    const level = await LocalAuthentication.getEnrolledLevelAsync()
+    if (level === LocalAuthentication.SecurityLevel.NONE) {
+      Alert.alert(
+        'Set up device security first',
+        'Add Face ID, fingerprint, or a device passcode in your system settings to use app lock.',
+      )
+      return
+    }
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Confirm to enable app lock',
+    })
+    if (result.success) setBiometricEnabled(true)
+  }
 
   const initials = user?.displayName
     ? user.displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -97,6 +135,32 @@ export default function SettingsScreen() {
             })}
           </View>
         </View>
+
+        {/* Security — biometrics don't exist on web, so the section is hidden there */}
+        {Platform.OS !== 'web' && (
+          <View className="bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden">
+            <Text className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 pt-4 pb-1">
+              Security
+            </Text>
+            <View className="flex-row items-center px-4 py-4 gap-3">
+              <View className="w-9 h-9 rounded-full bg-green-100 dark:bg-green-900/30 items-center justify-center">
+                <Ionicons name="lock-closed" size={16} color="#10b981" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-black dark:text-white">{biometricLabel}</Text>
+                <Text className="text-xs text-gray-400 mt-0.5">
+                  Require authentication when opening the app
+                </Text>
+              </View>
+              <Switch
+                value={biometricEnabled}
+                onValueChange={handleToggleBiometric}
+                trackColor={{ true: '#1C274C' }}
+                accessibilityLabel={`${biometricLabel} app lock`}
+              />
+            </View>
+          </View>
+        )}
 
         {/* Data */}
         <View className="bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden">

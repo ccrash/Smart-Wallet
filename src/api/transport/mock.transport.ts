@@ -15,13 +15,6 @@ const CREDIT_PER_UNIT = 1
 const VOUCHER_CATALOG: VoucherProduct[] = catalogJson
 const VOUCHER_DENOMINATIONS = VOUCHER_CATALOG.map((v) => v.denomination)
 
-const MOCK_USER: User = {
-  id: 'mock-user-001',
-  displayName: 'Alex Johnson',
-  email: 'alex@example.com',
-  photoURL: null,
-}
-
 function respond<T>(handler: () => T): Promise<import('@/types').ApiResponse<T>> {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -81,7 +74,19 @@ export const mockTransport: ApiTransport = {
     const b = body as Record<string, unknown>
 
     if (path === '/auth/sign-in') {
-      return respond(() => MOCK_USER) as Promise<import('@/types').ApiResponse<T>>
+      return respond((): User => {
+        const trimmed = String(b.displayName ?? '').trim()
+        if (!trimmed) throw new Error('Name cannot be empty.')
+        if (trimmed.length > MAX_NAME_LENGTH)
+          throw new Error(`Name must be ${MAX_NAME_LENGTH} characters or fewer.`)
+        const slug = trimmed.toLowerCase().replace(/\s+/g, '.').replace(/[^a-z0-9.]/g, '')
+        return {
+          id: generateId(),
+          displayName: trimmed,
+          email: `${slug || 'demo'}@demo.smartwallet.app`,
+          photoURL: null,
+        }
+      }) as Promise<import('@/types').ApiResponse<T>>
     }
 
     if (path === '/auth/sign-out') {

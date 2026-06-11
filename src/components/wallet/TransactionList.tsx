@@ -45,7 +45,7 @@ export function TransactionList() {
 
       {isLoading ? (
         <View className="py-8 items-center justify-center">
-          <ActivityIndicator size="small" color="#208AEF" />
+          <ActivityIndicator size="small" color="#1C274C" />
         </View>
       ) : txList.length === 0 ? (
         <View className="py-8 items-center">
@@ -69,7 +69,7 @@ export function TransactionList() {
               accessibilityState={{ disabled: isLoadingMore }}
               className="mt-3 py-3 items-center active:opacity-60">
               {isLoadingMore ? (
-                <ActivityIndicator testID="loading-more" size="small" color="#208AEF" />
+                <ActivityIndicator testID="loading-more" size="small" color="#1C274C" />
               ) : (
                 <Text className="text-sm text-primary font-medium">Load more</Text>
               )}

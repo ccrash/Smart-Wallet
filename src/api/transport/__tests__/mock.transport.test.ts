@@ -80,10 +80,31 @@ describe('mockTransport', () => {
   // ─── Auth routes ───────────────────────────────────────────────────────────
 
   describe('POST /auth/sign-in', () => {
-    it('returns the hardcoded mock user', async () => {
-      const r = await run(mockTransport.post<{ id: string; displayName: string }>('/auth/sign-in'))
+    it('builds a demo user from the submitted display name', async () => {
+      const r = await run(
+        mockTransport.post<{ displayName: string; email: string }>('/auth/sign-in', {
+          displayName: 'Alex Johnson',
+        }),
+      )
       expect(r.error).toBeNull()
-      expect(r.data).toMatchObject({ id: 'mock-user-001', displayName: 'Alex Johnson' })
+      expect(r.data).toMatchObject({
+        displayName: 'Alex Johnson',
+        email: 'alex.johnson@demo.smartwallet.app',
+      })
+    })
+
+    it('rejects an empty display name', async () => {
+      const r = await run(mockTransport.post('/auth/sign-in', { displayName: '  ' }))
+      expect(r.data).toBeNull()
+      expect(r.error).toBe('Name cannot be empty.')
+    })
+
+    it('strips characters that are not valid in the derived email', async () => {
+      const r = await run(
+        mockTransport.post<{ email: string }>('/auth/sign-in', { displayName: "Anne-Marie O'Neil" }),
+      )
+      expect(r.error).toBeNull()
+      expect(r.data!.email).toBe('annemarie.oneil@demo.smartwallet.app')
     })
   })
 

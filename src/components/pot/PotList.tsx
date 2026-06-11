@@ -152,7 +152,7 @@ export function PotList() {
 
         {isLoading ? (
           <View className="py-8 items-center">
-            <ActivityIndicator size="small" color="#208AEF" />
+            <ActivityIndicator size="small" color="#1C274C" />
           </View>
         ) : displayPots.length === 0 ? (
           <View className="py-12 items-center">

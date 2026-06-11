@@ -1,6 +1,8 @@
 # Smart Wallet
 
-A personal finance mini-app built with React Native / Expo as a take-home coding exercise.
+A mobile-first personal finance app — wallet, savings pots, a voucher shop, and loyalty
+points — built with React Native (Expo) and TypeScript. Runs on iOS, Android, and the web
+from a single codebase.
 
 ---
 
@@ -10,212 +12,90 @@ A personal finance mini-app built with React Native / Expo as a take-home coding
 npm install
 npm run web      # browser at http://localhost:8081
 npm run android  # Android (requires emulator or device)
+npm test         # Jest suite
 ```
 
-No environment variables are required — the app ships with a built-in mock transport that
-runs entirely in-process. To point at a real backend, copy `.env.example` to `.env.local`
-and set `EXPO_PUBLIC_API_URL`.
+No environment variables are required — the app ships with a built-in mock backend that
+runs entirely in-process. To point at a real backend, set `EXPO_PUBLIC_API_URL`.
 
 ---
 
 ## Features
 
-| Screen | Status | Notes |
-|---|---|---|
-| Sign in | ✅ | Mock auth (Google OAuth stub) |
-| Wallet home | ✅ | Balance, transaction history with pagination |
-| Savings pots | ✅ | Create, deposit, withdraw, delete pots |
-| Voucher shop | ✅ | Buy preset vouchers; codes generated on purchase |
-| Loyalty rewards | ✅ | Points balance, stepper UI, redeem for wallet credit |
+| Feature | Notes |
+|---|---|
+| Sign in | Local demo profile (name input); session persists across launches |
+| Wallet | Balance and paginated transaction history with running balances |
+| Savings pots | Create, deposit, withdraw, delete — pot money is ring-fenced from the wallet |
+| Voucher shop | Buy preset vouchers; a voucher code is generated on purchase |
+| Loyalty rewards | Earn 1 pt per £1 spent; redeem 100 pts for £1.00 wallet credit |
+| Biometric app lock | Optional Face ID / fingerprint / device PIN lock (mobile only) |
+| Dark mode | Light / dark / system, switchable in Settings |
 
 ---
 
 ## Tech stack
 
-| Concern | Choice | Why |
-|---|---|---|
-| Framework | Expo SDK 54, managed workflow | Fastest cross-platform start; no native build tooling needed for review |
-| Navigation | expo-router v4 | File-system routing — convention over configuration |
-| Styling | NativeWind 4 (Tailwind CSS) | Single utility-class system that works on both native and web |
-| State | Zustand 5 + AsyncStorage `persist` | Minimal boilerplate; stores are independent slices; hydration is explicit |
-| TypeScript | Strict throughout | All domain types defined in `src/types/index.ts` |
+| Concern | Choice |
+|---|---|
+| Framework | Expo SDK 54 (managed workflow), React Native + react-native-web |
+| Navigation | expo-router — file-system routing |
+| Styling | NativeWind 4 (Tailwind CSS for native and web) |
+| State | Zustand 5 with AsyncStorage persistence |
+| Testing | Jest + React Native Testing Library |
+| Language | TypeScript, strict |
 
 ---
 
-## Architecture
+## Architecture in brief
 
-### Folder structure
-
-```
-src/
-  api/
-    transport/
-      types.ts          # ApiTransport interface + ApiResponse type
-      mock.transport.ts # In-process mock — route handlers + business logic
-      http.transport.ts # Real HTTP client (fetch) for production
-      index.ts          # Selects active transport based on EXPO_PUBLIC_API_URL
-    auth.service.ts
-    wallet.service.ts
-    pots.service.ts
-    vouchers.service.ts
-    loyalty.service.ts
-    client.ts           # generateId utility
-    db.ts               # In-memory state store used by mock transport
-  store/
-    authStore.ts
-    walletStore.ts
-    themeStore.ts
-  types/
-    index.ts            # Single source of truth for domain types
-  app/                  # expo-router file-system routes
-    (auth)/
-      sign-in.tsx
-    (tabs)/
-      index.tsx         # Wallet home
-      pots.tsx
-      shop.tsx
-      rewards.tsx
-      settings.tsx
-  components/
-    AppHeader.tsx
-    FloatingTabBar.tsx
-    pot/
-    voucher/
-    wallet/
-    rewards/
-```
-
-### Transport layer
-
-All API calls go through an `ApiTransport` interface:
-
-```ts
-interface ApiTransport {
-  get<T>(path: string, params?: Record<string, string | number>): Promise<ApiResponse<T>>
-  post<T>(path: string, body?: unknown): Promise<ApiResponse<T>>
-  put<T>(path: string, body?: unknown): Promise<ApiResponse<T>>
-  del<T>(path: string): Promise<ApiResponse<T>>
-}
-
-type ApiResponse<T> = { data: T; error: null } | { data: null; error: string }
-```
-
-Two implementations live behind this interface:
-
-| Implementation | File | When active |
-|---|---|---|
-| `mockTransport` | `transport/mock.transport.ts` | `EXPO_PUBLIC_API_URL` unset (default) |
-| `httpTransport` | `transport/http.transport.ts` | `EXPO_PUBLIC_API_URL` set |
-
-The active transport is selected once at import time in `transport/index.ts`:
+**Transport abstraction.** Every feature talks to a small service layer, which calls an
+`ApiTransport` interface. The default implementation is an in-process mock that owns all
+business rules and simulates network latency; a real `fetch`-based transport activates when
+`EXPO_PUBLIC_API_URL` is set — no other code changes needed.
 
 ```ts
 export const transport = process.env.EXPO_PUBLIC_API_URL ? httpTransport : mockTransport
 ```
 
-No code changes are needed to switch from local to production — set the env variable and the
-real HTTP client takes over. The mock transport contains all business logic and simulates
-150 ms network latency. The HTTP transport normalises non-2xx responses and network errors
-into the same `ApiResponse` error shape, so callers never need try/catch.
+All responses share one discriminated union (`{ data } | { error }`), so callers handle
+errors by pattern matching — no try/catch, no unhandled rejections.
 
-### REST API contract
+**Self-contained components.** Screens are thin layout shells; the logic lives in
+domain components that subscribe directly to the stores, which keeps them independently
+testable and avoids prop-drilling.
 
-| Method | Path | Body / Params | Response |
-|---|---|---|---|
-| `GET` | `/wallet/balance` | — | `number` |
-| `GET` | `/wallet/transactions` | `?page=N` | `{ items: Transaction[]; hasMore: boolean }` |
-| `GET` | `/pots` | — | `Pot[]` |
-| `POST` | `/pots` | `{ name }` | `Pot` |
-| `POST` | `/pots/:id/deposit` | `{ amount }` | `{ pot: Pot; debitAmount: number }` |
-| `POST` | `/pots/:id/withdraw` | `{ amount }` | `{ pot: Pot; creditAmount: number }` |
-| `DELETE` | `/pots/:id` | — | `{ refundAmount: number }` |
-| `GET` | `/vouchers` | — | `Voucher[]` |
-| `POST` | `/vouchers/purchase` | `{ denomination }` | `Voucher` |
-| `GET` | `/loyalty/balance` | — | `number` |
-| `POST` | `/loyalty/redeem` | `{ points }` | `{ creditAmount; remainingPoints; transactionId }` |
-| `POST` | `/auth/sign-in` | — | `User` |
-| `POST` | `/auth/sign-out` | — | `void` |
-
-### Component architecture
-
-Tab screens are thin layout shells (10–15 lines). All logic lives in self-contained section
-components under `src/components/{domain}/` that read directly from Zustand stores. This
-avoids prop-drilling and makes each component independently testable. A custom
-`FloatingTabBar` replaces the default expo-router tab bar; all scroll containers call
-`useTabBarPadding()` to reserve space above it.
-
-### State hydration
-
-Both stores use `onRehydrateStorage` to set `isHydrated: true` after AsyncStorage loads.
-The root layout gate (`_layout.tsx`) waits for both stores to be hydrated before rendering
-screens, preventing flashes of incorrect state on cold launch.
+**Money correctness.** All money rules live in one utility: strict input parsing (rejects
+`NaN` and sub-penny values), validation repeated at the transport boundary, and every
+balance computation rounded to exactly two decimal places so float error can never
+accumulate. The wallet balance can never go negative, and points can never be
+over-redeemed.
 
 ---
 
-## Business rules
+## Testing
 
-| Rule | Enforced in |
-|---|---|
-| Starting balance: £500 (seeded once) | `walletStore.seed()` |
-| Overdraft prevention | `mock.transport` — `/pots/:id/deposit`, `/vouchers/purchase` |
-| Pot name uniqueness (case-insensitive) | `mock.transport` — `POST /pots` |
-| Pot name max 30 chars | `mock.transport` — `POST /pots` |
-| Voucher denominations: £10, £25, £50, £100 | `mock.transport` — `POST /vouchers/purchase` |
-| Points earned: 1 pt per £1 spent on vouchers | `mock.transport` — `POST /vouchers/purchase` |
-| Points redeemable in multiples of 100 | `mock.transport` — `POST /loyalty/redeem` |
-| 100 pts = £1.00 credit | `mock.transport` — `POST /loyalty/redeem` |
-| Withdrawing from a pot returns funds to wallet | `mock.transport` — `POST /pots/:id/withdraw` |
-| Deleting a pot with balance refunds to wallet | `mock.transport` — `DELETE /pots/:id` |
+```bash
+npm test
+```
+
+200+ tests across unit (services, transport, stores, money utilities) and component
+(React Native Testing Library) levels — covering balance integrity edge cases, validation,
+loading/error states, and the biometric lock lifecycle.
 
 ---
 
-## Google OAuth — current state and production path
+## Known limitations
 
-Authentication is currently mocked: the sign-in button creates a hardcoded `User` object
-via the mock transport's `POST /auth/sign-in` handler. No credentials are required to run
-or review the app.
+- Data lives in AsyncStorage on the device — uninstalling the app clears it.
+- Authentication is a local demo profile; there is no server-side identity.
+- Face ID can't be tested in Expo Go on iOS (platform limitation) — it needs a dev build.
+  Fingerprint on Android and the device-PIN fallback work everywhere; the lock is hidden
+  on web.
 
-**Production implementation plan:**
+## Roadmap
 
-1. Stand up a thin backend (Node/Express or serverless function) as an OAuth bridge. The
-   bridge holds the Google `client_secret`; the mobile app never sees it.
-2. Mobile app calls `expo-auth-session` with the bridge's `/auth/google` URL. After the
-   Google callback, the bridge exchanges the code for tokens, creates a session, and returns
-   only a signed session token to the app.
-3. App stores the session token; all subsequent API calls authenticate with it via a request
-   header added in `http.transport.ts`.
-
-**Why not implement it now?**
-- iOS OAuth requires a macOS machine to build the native client; this was developed on Windows.
-- A real bridge requires a deployed server, making the app un-runnable without credentials.
-- The mock fallback lets any reviewer run the app immediately.
-
----
-
-## Known limitations and trade-offs
-
-- **No real persistence beyond the device** — all data lives in AsyncStorage. On app
-  uninstall, data is lost. A real backend would resolve this.
-- **No real auth** — the mock user is hardcoded. Avatar image (`photoURL`) is always null.
-- **No optimistic updates** — the store is only updated after a service call resolves. Fine
-  for 150 ms simulated latency; a real network would benefit from skeleton/optimistic
-  patterns.
-- **Mock transport is single-threaded** — handlers run synchronously on the JS thread.
-  A real API introduces true async failure modes (timeouts, 5xx) that the `httpTransport`
-  handles by mapping them to the same `ApiResponse` error shape.
-
----
-
-## What I'd add with more time
-
-1. **Google OAuth bridge** — as described above.
-2. **Real backend** — sync wallet state server-side so it survives reinstalls and works
-   across devices. The transport abstraction makes this a drop-in: implement the REST
-   contract and set `EXPO_PUBLIC_API_URL`.
-3. **Auth header middleware** — add a `getAuthToken()` hook in `http.transport.ts` to
-   attach the session token to every request.
-4. **expo-image** — for caching the user avatar and product images in the voucher shop.
-5. **Push notifications** — `expo-notifications` for transaction confirmations and pot
-   goal milestones.
-6. **Biometric lock** — `expo-local-authentication` to re-authenticate before transfers.
-7. **CI** — GitHub Actions running `tsc --noEmit` and the Jest suite on every PR.
+- Real backend behind the existing transport contract (drop-in via `EXPO_PUBLIC_API_URL`)
+- Google sign-in through a token-exchange bridge
+- Push notifications for transactions and pot milestones
+- CI running typecheck and the test suite on every PR

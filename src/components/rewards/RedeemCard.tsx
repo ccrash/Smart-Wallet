@@ -126,7 +126,7 @@ export function RedeemCard() {
               accessibilityLabel="Decrease redemption amount"
               accessibilityState={{ disabled: redeemAmount <= POINTS_PER_UNIT }}
               className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-700 items-center justify-center active:opacity-60 disabled:opacity-30">
-              <Ionicons name="remove" size={20} color="#208AEF" />
+              <Ionicons name="remove" size={20} color="#1C274C" />
             </Pressable>
 
             <View className="items-center">
@@ -144,7 +144,7 @@ export function RedeemCard() {
               accessibilityLabel="Increase redemption amount"
               accessibilityState={{ disabled: redeemAmount >= maxRedeemable }}
               className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-700 items-center justify-center active:opacity-60 disabled:opacity-30">
-              <Ionicons name="add" size={20} color="#208AEF" />
+              <Ionicons name="add" size={20} color="#1C274C" />
             </Pressable>
           </View>
 

@@ -24,7 +24,7 @@ const TAB_LABELS: Record<string, string> = {
   settings: 'Settings',
 }
 
-const PRIMARY = '#208AEF'
+const PRIMARY = '#1C274C'
 
 export const TAB_BAR_HEIGHT = 56
 export const TAB_BAR_OFFSET = 12

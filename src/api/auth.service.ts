@@ -3,8 +3,8 @@ import { User } from '@/types'
 import { transport } from './transport'
 
 export const authService = {
-  signInMock() {
-    return transport.post<User>('/auth/sign-in')
+  signIn(displayName: string) {
+    return transport.post<User>('/auth/sign-in', { displayName })
   },
 
   signOut() {
