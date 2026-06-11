@@ -16,7 +16,9 @@
 
 ## Concepts
 
-_None identified on first compile. Re-run after adding more domain complexity._
+| Slug | Description | Connects | Status |
+|------|-------------|----------|--------|
+| `money-integrity` | Layered money validation — strict input parsing, transport re-validation, 2dp rounding on every arithmetic result | wallet-core, pots, transport-layer, voucher-shop, loyalty-rewards | active |
 
 ## Naming Conventions
 - Topic slugs: `lowercase-kebab-case`
@@ -27,3 +29,4 @@ _None identified on first compile. Re-run after adding more domain complexity._
 - **2026-06-10**: Initial schema generated from 9 topics, 0 concepts
 - **2026-06-10**: Updated `component-architecture` — added FloatingTabBar, useTabBarPadding hook, floating tab bar pattern; updated `project-overview` — navigation architecture now reflects custom tab bar and per-screen padding strategy
 - **2026-06-11**: Updated `auth` — sign-in flow changed to bypass authService; `component-architecture` — added themeStore; `pots` — removed stale PotsScreen reference; `testing` — walletStore and TransactionList test detail expanded
+- **2026-06-11**: Added concept `money-integrity` — new `src/utils/money.ts` introduced layered amount validation (NaN rejection, 2dp precision) spanning 5 topics; updated `wallet-core`, `transport-layer`, `pots`, `testing`

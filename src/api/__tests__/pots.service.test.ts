@@ -79,7 +79,7 @@ describe('potsService', () => {
       const result = await run(potsService.deposit('pot-1', 0))
 
       expect(result.data).toBeNull()
-      expect(result.error).toMatch(/greater than zero/)
+      expect(result.error).toMatch(/must be a positive number/)
     })
 
     it('returns error when balance is insufficient', async () => {
@@ -118,7 +118,7 @@ describe('potsService', () => {
       const result = await run(potsService.withdraw('pot-1', -10))
 
       expect(result.data).toBeNull()
-      expect(result.error).toMatch(/greater than zero/)
+      expect(result.error).toMatch(/must be a positive number/)
     })
 
     it('returns error when pot balance is insufficient', async () => {

@@ -1,5 +1,12 @@
 # Compilation Log
 
+## 2026-06-11 (update 2)
+
+**Topics updated:** wallet-core, transport-layer, pots, testing
+**New topics:** none (new concept: money-integrity)
+**Sources scanned:** 67
+**Sources changed:** 9 (new src/utils/money.ts + money.test.ts; mock.transport NaN/2dp validation; walletStore roundMoney; PotList parseMoneyInput; 4 test files updated — suite now 182 tests / 21 suites)
+
 ## 2026-06-11
 
 **Topics updated:** auth, component-architecture, testing, pots, wallet-core

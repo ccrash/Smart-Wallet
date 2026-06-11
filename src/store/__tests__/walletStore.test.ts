@@ -101,6 +101,15 @@ describe('walletStore', () => {
       expect(useWalletStore.getState().balance).toBe(474.5)
       expect(useWalletStore.getState().transactions[0].runningBalance).toBe(474.5)
     })
+
+    it('rounds away float drift so the balance stays at exactly 2 decimal places', () => {
+      useWalletStore.getState().applyTransaction(tx('t1', -499.9)) // 500 − 499.9 = 0.10000000000002274 unrounded
+      useWalletStore.getState().applyTransaction(tx('t2', 0.2))
+      const { balance, transactions } = useWalletStore.getState()
+      expect(balance).toBe(0.3)
+      expect(transactions[0].runningBalance).toBe(0.3)
+      expect(transactions[1].runningBalance).toBe(0.1)
+    })
   })
 
   // ─── reset ─────────────────────────────────────────────────────────────────

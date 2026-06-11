@@ -1,13 +1,13 @@
 ---
 topic: transport-layer
-last_compiled: 2026-06-10
-sources_count: 7
+last_compiled: 2026-06-11
+sources_count: 8
 status: active
 ---
 
-# Transport Layer [coverage: high — 7 sources]
+# Transport Layer [coverage: high — 8 sources]
 
-## Summary [coverage: high — 7 sources]
+## Summary [coverage: high — 8 sources]
 The transport layer is a thin abstraction that lets all API services work identically in development (mock) and production (real HTTP) by swapping a single `ApiTransport` implementation. Services call `transport.get/post/del` and never know which backend they're talking to. Selection is compile-time: if `EXPO_PUBLIC_API_URL` is set, use `httpTransport`; otherwise use `mockTransport`.
 
 All responses use a discriminated union — they always resolve (never reject), which eliminates unhandled promise rejections throughout the app.
@@ -75,14 +75,17 @@ Never throws — always returns `ApiResponse`.
 **Simulated delay:** 150 ms on every route (via `setTimeout`). Tests that use the mock transport must call `jest.useRealTimers()` in `beforeAll`.  
 **Error handling:** Business rule violations throw inside `respond(handler)` and are caught → returned as `ApiError`. Unknown routes return an error response immediately.
 
+**Amount validation:** `/pots/:id/deposit` and `/pots/:id/withdraw` validate amounts with `isValidAmount` from `src/utils/money.ts` — finite, positive, max 2 decimal places. This explicitly rejects `NaN`/`Infinity`, which the previous `amount <= 0` check let through (`NaN <= 0` is `false`). Resulting pot balances are rounded with `roundMoney` so they stay at exact 2dp. `/loyalty/redeem` is NaN-safe via its multiples-of-100 check (`NaN % 100 !== 0` is `true`); `/vouchers/purchase` via its denomination allow-list.
+
 ## Path Matching [coverage: medium — 1 source]
 `matchPath(pattern, path)` — splits both strings by `/` and extracts `:param` segments. Returns `Record<string, string>` of captured params or `null` on mismatch. Used for `/pots/:id`, `/pots/:id/deposit`, `/pots/:id/withdraw`.
 
 ## generateId [coverage: high — 1 source]
 `src/api/client.ts`: `Math.random().toString(36).slice(2, 11)` — 9-character alphanumeric. Not cryptographically secure; used for transaction IDs, pot IDs, voucher codes. Mocked to `'test-tx-id'` in all tests.
 
-## Sources [coverage: high — 7 sources]
+## Sources [coverage: high — 8 sources]
 - [src/api/transport/types.ts](../../src/api/transport/types.ts)
+- [src/utils/money.ts](../../src/utils/money.ts)
 - [src/api/transport/index.ts](../../src/api/transport/index.ts)
 - [src/api/transport/mock.transport.ts](../../src/api/transport/mock.transport.ts)
 - [src/api/transport/http.transport.ts](../../src/api/transport/http.transport.ts)

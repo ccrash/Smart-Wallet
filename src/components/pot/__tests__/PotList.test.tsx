@@ -146,6 +146,20 @@ describe('PotList', () => {
       expect(await screen.findByText('Insufficient balance.')).toBeTruthy()
       expect(mockUpdatePotBalance).not.toHaveBeenCalled()
     })
+
+    it.each(['.', '5abc', '10.999', '0'])(
+      'rejects invalid amount %p before calling the service',
+      async (input) => {
+        await render(<PotList />)
+        fireEvent.press(await screen.findByText('Add'))
+        await typeInto('Amount (e.g. 50.00)', input)
+        fireEvent.press(screen.getByText('Confirm'))
+
+        expect(await screen.findByText('Enter a valid amount, e.g. 25 or 25.50.')).toBeTruthy()
+        expect(potsService.deposit).not.toHaveBeenCalled()
+        expect(mockApplyTransaction).not.toHaveBeenCalled()
+      },
+    )
   })
 
   // ─── Withdraw ────────────────────────────────────────────────────────────────

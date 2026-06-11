@@ -1,5 +1,6 @@
 import catalogJson from '@/data/vouchers.json'
 import { Pot, User, Voucher, VoucherProduct } from '@/types'
+import { isValidAmount, roundMoney } from '@/utils/money'
 
 import { generateId } from '../client'
 import { db } from '../db'
@@ -104,12 +105,13 @@ export const mockTransport: ApiTransport = {
     if (depositMatch) {
       return respond(() => {
         const amount = Number(b.amount)
-        if (amount <= 0) throw new Error('Deposit amount must be greater than zero.')
+        if (!isValidAmount(amount))
+          throw new Error('Deposit amount must be a positive number with at most 2 decimal places.')
         const { balance, pots } = db.get()
         const pot = pots.find((p) => p.id === depositMatch.id)
         if (!pot) throw new Error('Pot not found.')
         if (balance < amount) throw new Error('Insufficient balance.')
-        return { pot: { ...pot, balance: pot.balance + amount }, debitAmount: amount }
+        return { pot: { ...pot, balance: roundMoney(pot.balance + amount) }, debitAmount: amount }
       }) as Promise<import('@/types').ApiResponse<T>>
     }
 
@@ -117,12 +119,13 @@ export const mockTransport: ApiTransport = {
     if (withdrawMatch) {
       return respond(() => {
         const amount = Number(b.amount)
-        if (amount <= 0) throw new Error('Withdrawal amount must be greater than zero.')
+        if (!isValidAmount(amount))
+          throw new Error('Withdrawal amount must be a positive number with at most 2 decimal places.')
         const { pots } = db.get()
         const pot = pots.find((p) => p.id === withdrawMatch.id)
         if (!pot) throw new Error('Pot not found.')
         if (pot.balance < amount) throw new Error('Insufficient pot balance.')
-        return { pot: { ...pot, balance: pot.balance - amount }, creditAmount: amount }
+        return { pot: { ...pot, balance: roundMoney(pot.balance - amount) }, creditAmount: amount }
       }) as Promise<import('@/types').ApiResponse<T>>
     }
 

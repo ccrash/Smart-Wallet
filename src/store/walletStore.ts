@@ -4,6 +4,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 
 import { db } from '@/api/db'
 import { Pot, Transaction, Voucher } from '@/types'
+import { roundMoney } from '@/utils/money'
 
 const SEED_BALANCE = 500
 
@@ -67,7 +68,7 @@ export const useWalletStore = create<WalletState>()(
       _setHydrated: () => set({ isHydrated: true }),
 
       applyTransaction: (tx) => {
-        const newBalance = get().balance + tx.amount
+        const newBalance = roundMoney(get().balance + tx.amount)
         const fullTx = { ...tx, runningBalance: newBalance }
         db.set((d) => ({
           ...d,

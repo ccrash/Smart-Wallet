@@ -11,6 +11,7 @@
     "component-architecture",
     "testing"
   ],
+  "concepts": ["money-integrity"],
   "source_locations": ["src"],
-  "total_sources_scanned": 65
+  "total_sources_scanned": 67
 }

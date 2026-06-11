@@ -1,14 +1,16 @@
 ---
 topic: wallet-core
 last_compiled: 2026-06-11
-sources_count: 8
+sources_count: 9
 status: active
 ---
 
-# Wallet Core [coverage: high — 8 sources]
+# Wallet Core [coverage: high — 9 sources]
 
-## Summary [coverage: high — 8 sources]
+## Summary [coverage: high — 9 sources]
 The wallet is the financial hub of the app. A single Zustand store (`walletStore`, persisted to AsyncStorage) holds all financial state. An in-memory `db` singleton acts as the data layer that mock services read from and write to — it is reverse-synced from the store on cold start so services always see correct session state.
+
+All money rules (2-decimal-place precision, amount validation, input parsing) are centralised in `src/utils/money.ts`. Every balance arithmetic result passes through `roundMoney` so float error can never accumulate in a stored balance.
 
 The home screen (`index.tsx`) is a thin layout shell. `BalanceCard` and `TransactionList` are self-contained components that subscribe directly to the store.
 
@@ -52,7 +54,7 @@ db.reset()             // clear to EMPTY
 **Why this exists:** Mock services need synchronous access to current state (balance checks, pot lookups). Rather than passing state as parameters, the db layer acts as a shared memory. On rehydration, `walletStore` calls `db.hydrate()` so the in-memory db reflects the persisted session.
 
 ## Key Actions [coverage: high — 1 source]
-- **`applyTransaction(tx)`** — computes `newBalance = balance + tx.amount`, writes `runningBalance` onto the tx, updates both `db` and store atomically
+- **`applyTransaction(tx)`** — computes `newBalance = roundMoney(balance + tx.amount)` (rounded to 2dp to prevent float drift), writes `runningBalance` onto the tx, updates both `db` and store atomically
 - **`seed()`** — guarded by `isSeeded`; creates the `£500` welcome transaction; called by root `_layout.tsx` after hydration
 - **`reset()`** — clears db + all store fields; used by Settings → "Reset wallet data"
 
@@ -73,13 +75,27 @@ db.reset()             // clear to EMPTY
 | `voucher_purchase` | pricetag | orange |
 | `points_redemption` | star | yellow |
 
-## Balance Integrity Rules [coverage: high — 2 sources]
+## Money Utilities [coverage: high — 1 source]
+`src/utils/money.ts` — the single place money rules live:
+
+| Function | Behaviour |
+|----------|-----------|
+| `roundMoney(n)` | Rounds to 2dp (`Math.round(n * 100) / 100`). All balance arithmetic passes through it. |
+| `isValidAmount(n)` | True only for finite, positive amounts with ≤2 decimal places. Rejects `NaN`/`Infinity` (which `amount <= 0` checks let through — `NaN <= 0` is `false`). Used by the mock transport. |
+| `parseMoneyInput(raw)` | Strict regex parse (`/^\d+(\.\d{1,2})?$/`) of user text → `number \| null`. Rejects `'.'`, `'5abc'`, `'1e5'`, `'10.999'`, `'0'`. Used by forms before calling services. |
+
+Validation is layered: forms parse with `parseMoneyInput` (friendly field error, no service call), the mock transport independently re-validates with `isValidAmount`, and the store rounds with `roundMoney`.
+
+## Balance Integrity Rules [coverage: high — 3 sources]
 - Balance never goes negative — enforced in the mock transport (throws `'Insufficient balance.'`)
-- `applyTransaction` does not re-validate; the service layer is expected to validate before calling
+- Balances are always exact 2dp values — `applyTransaction` and pot arithmetic round via `roundMoney`
+- `NaN`/`Infinity`/sub-penny amounts are rejected at both the input layer (`parseMoneyInput`) and the transport layer (`isValidAmount`)
+- `applyTransaction` does not re-validate amounts; the service layer is expected to validate before calling
 - Pot balances are excluded from `balance` — they represent committed savings
 
-## Sources [coverage: high — 8 sources]
+## Sources [coverage: high — 9 sources]
 - [src/store/walletStore.ts](../../src/store/walletStore.ts)
+- [src/utils/money.ts](../../src/utils/money.ts)
 - [src/api/db.ts](../../src/api/db.ts)
 - [src/api/wallet.service.ts](../../src/api/wallet.service.ts)
 - [src/types/index.ts](../../src/types/index.ts)

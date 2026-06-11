@@ -25,6 +25,7 @@ This project has a compiled knowledge wiki. Use it instead of scanning raw files
 | API services / mock transport | [transport-layer](topics/transport-layer.md) |
 | Component structure / screens | [component-architecture](topics/component-architecture.md) |
 | Tests / mocking / RNTL patterns | [testing](topics/testing.md) |
+| Anything that moves money (validation, rounding, NaN) | [money-integrity](concepts/money-integrity.md) |
 
 ## Stats
-Compiled: 2026-06-10 | Topics: 9 | Sources: 54
+Compiled: 2026-06-11 | Topics: 9 | Concepts: 1 | Sources: 67

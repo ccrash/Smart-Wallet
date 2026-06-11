@@ -1,16 +1,16 @@
 ---
 topic: testing
 last_compiled: 2026-06-11
-sources_count: 18
+sources_count: 19
 status: active
 ---
 
-# Testing [coverage: high — 18 sources]
+# Testing [coverage: high — 19 sources]
 
-## Summary [coverage: high — 18 sources]
-The test suite uses Jest 29 + jest-expo + @testing-library/react-native 14. Tests are co-located with source files in `__tests__/` directories. Tests are structured in three layers:
+## Summary [coverage: high — 19 sources]
+The test suite uses Jest 29 + jest-expo + @testing-library/react-native 14 — 182 tests across 21 suites. Tests are co-located with source files in `__tests__/` directories. Tests are structured in three layers:
 
-1. **Unit** — API services, transport layer, Zustand store (no React rendering)
+1. **Unit** — API services, transport layer, Zustand store, money utilities (no React rendering)
 2. **Component** — each self-contained component tested in its own `__tests__/` file next to the source
 3. **Screen** — only `SettingsScreen` and `TabsLayout` remain at screen level (they test screen-specific concerns: auth guard, theme preferences, alert flows)
 
@@ -36,13 +36,18 @@ Screen-level tests for `WalletScreen`, `ShopScreen`, and `PotsScreen` were remov
 | `src/api/__tests__/pots.service.test.ts` | Pot CRUD — 15 tests covering all business rules |
 | `src/api/__tests__/vouchers.service.test.ts` | Purchase — denomination validation, balance guard |
 | `src/api/__tests__/loyalty.service.test.ts` | Points redemption — multiples-of-100 rule |
-| `src/api/transport/__tests__/mock.transport.test.ts` | Route table, path matching, error shapes |
+| `src/api/transport/__tests__/mock.transport.test.ts` | Route table, path matching, error shapes, amount validation (NaN/Infinity/0/negative/3dp rejected via `it.each`), 2dp rounding |
 | `src/api/transport/__tests__/http.transport.test.ts` | Real HTTP fetch wrapper — all success + error paths |
+
+### Utilities
+| File | What it covers |
+|------|---------------|
+| `src/utils/__tests__/money.test.ts` | `roundMoney` (float drift), `isValidAmount` (NaN/Infinity/zero/negative/3dp), `parseMoneyInput` (strict text parsing — rejects `'.'`, `'5abc'`, `'1e5'`, `'10.999'`) |
 
 ### Store
 | File | What it covers |
 |------|---------------|
-| `src/store/__tests__/walletStore.test.ts` | seed (idempotent), applyTransaction (debit/credit/ordering/runningBalance), reset (all fields zeroed, re-seed allowed), addPot/updatePotBalance/removePot, addVoucher (prepends), setLoyaltyPoints — 13 tests |
+| `src/store/__tests__/walletStore.test.ts` | seed (idempotent), applyTransaction (debit/credit/ordering/runningBalance/2dp rounding), reset (all fields zeroed, re-seed allowed), addPot/updatePotBalance/removePot, addVoucher (prepends), setLoyaltyPoints — 14 tests |
 
 ### Components — Wallet
 | File | What it covers |
@@ -62,7 +67,7 @@ Screen-level tests for `WalletScreen`, `ShopScreen`, and `PotsScreen` were remov
 ### Components — Pot
 | File | What it covers |
 |------|---------------|
-| `src/components/pot/__tests__/PotList.test.tsx` | Full CRUD interaction — 11 tests |
+| `src/components/pot/__tests__/PotList.test.tsx` | Full CRUD interaction + invalid-input rejection — 15 tests |
 
 ### Screens
 | File | What it covers |
@@ -134,20 +139,21 @@ beforeAll(() => {
 The test covers: successful GET/POST/PUT/DELETE, non-ok response with `message` field, non-ok with JSON parse failure (falls back to `statusText`), network error (Error thrown), and non-Error thrown (returns `'Network error'`).
 
 ## walletStore Test Coverage [coverage: high — 1 source]
-`walletStore.test.ts` covers 13 tests across 6 describe blocks:
+`walletStore.test.ts` covers 14 tests across 6 describe blocks:
 - **seed** (2): initialises £500 balance with seed tx; idempotent (second call adds nothing)
-- **applyTransaction** (4): deducts/credits balance; prepends (newest first); each tx carries correct runningBalance
+- **applyTransaction** (5): deducts/credits balance; prepends (newest first); each tx carries correct runningBalance; rounds away float drift so balances stay at exactly 2dp
 - **reset** (2): zeroes all fields (balance, transactions, pots, vouchers, loyaltyPoints, isSeeded); allows re-seeding after reset
 - **pot operations** (3): addPot appends; updatePotBalance mutates only matching pot; removePot removes only matching pot
 - **addVoucher** (1): prepends to vouchers list
 - **setLoyaltyPoints** (1): replaces points balance (not additive)
 
 ## PotList Test Coverage [coverage: high — 1 source]
-`PotList.test.tsx` is the most comprehensive component test (11 tests):
+`PotList.test.tsx` is the most comprehensive component test (15 tests):
 - Create success → `addPot` called, modal closes
 - Create failure → `fieldError` shown, modal stays open
 - Deposit success → `updatePotBalance` + `applyTransaction({ type: 'pot_deposit', amount: -N })`
 - Deposit failure → `fieldError` shown
+- Invalid amounts (`'.'`, `'5abc'`, `'10.999'`, `'0'`) → field error, service never called (`it.each`, 4 tests)
 - Withdraw success → `updatePotBalance` + `applyTransaction({ type: 'pot_withdrawal', amount: N })`
 - Withdraw failure → `fieldError` shown
 - Delete alert: refund message when `balance > 0`
@@ -156,7 +162,8 @@ The test covers: successful GET/POST/PUT/DELETE, non-ok response with `message` 
 - Delete confirm: `applyTransaction({ amount: 75 })` + `removePot` when `refundAmount > 0`
 - Delete service error: `removePot` NOT called when service returns `{ data: null }`
 
-## Sources [coverage: high — 18 sources]
+## Sources [coverage: high — 19 sources]
+- [src/utils/__tests__/money.test.ts](../../src/utils/__tests__/money.test.ts)
 - [src/app/(tabs)/__tests__/SettingsScreen.test.tsx](../../src/app/(tabs)/__tests__/SettingsScreen.test.tsx)
 - [src/app/(tabs)/__tests__/TabsLayout.test.tsx](../../src/app/(tabs)/__tests__/TabsLayout.test.tsx)
 - [src/components/pot/__tests__/PotList.test.tsx](../../src/components/pot/__tests__/PotList.test.tsx)

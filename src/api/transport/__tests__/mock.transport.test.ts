@@ -94,6 +94,37 @@ describe('mockTransport', () => {
     })
   })
 
+  // ─── Amount validation ─────────────────────────────────────────────────────
+
+  describe('amount validation', () => {
+    beforeEach(() => db.hydrate({ balance: 100, pots: [makePot('p1', 50)] }))
+
+    it.each([NaN, Infinity, 0, -10, 10.999])('rejects deposit amount %p', async (amount) => {
+      const r = await run(mockTransport.post('/pots/p1/deposit', { amount }))
+      expect(r.data).toBeNull()
+      expect(r.error).toMatch(/Deposit amount must be a positive number/)
+    })
+
+    it.each([NaN, Infinity, 0, -10, 10.999])('rejects withdrawal amount %p', async (amount) => {
+      const r = await run(mockTransport.post('/pots/p1/withdraw', { amount }))
+      expect(r.data).toBeNull()
+      expect(r.error).toMatch(/Withdrawal amount must be a positive number/)
+    })
+
+    it('rejects a non-numeric deposit body', async () => {
+      const r = await run(mockTransport.post('/pots/p1/deposit', { amount: '.' }))
+      expect(r.data).toBeNull()
+      expect(r.error).toMatch(/Deposit amount must be a positive number/)
+    })
+
+    it('keeps pot balances at exactly 2 decimal places', async () => {
+      db.hydrate({ pots: [makePot('p1', 0.1)] })
+      const r = await run(mockTransport.post<{ pot: { balance: number } }>('/pots/p1/deposit', { amount: 0.2 }))
+      expect(r.error).toBeNull()
+      expect(r.data!.pot.balance).toBe(0.3)
+    })
+  })
+
   // ─── Handler errors are returned, not thrown ───────────────────────────────
 
   describe('error shape', () => {

@@ -8,6 +8,7 @@ import { potsService } from '@/api/pots.service'
 import { useTabBarPadding } from '@/components/FloatingTabBar'
 import { useWalletStore } from '@/store/walletStore'
 import { Pot } from '@/types'
+import { parseMoneyInput } from '@/utils/money'
 
 import { PotActionModal, PotModalMode } from './PotActionModal'
 import { PotCard } from './PotCard'
@@ -62,36 +63,43 @@ export function PotList() {
         setFieldError(r.error)
       }
 
-    } else if (modalMode === 'deposit' && selectedPot) {
-      const r = await potsService.deposit(selectedPot.id, parseFloat(inputValue))
-      if (r.data !== null) {
-        updatePotBalance(selectedPot.id, r.data.pot.balance)
-        applyTransaction({
-          id: generateId(),
-          date: now,
-          type: 'pot_deposit',
-          amount: -r.data.debitAmount,
-          description: `Transfer to ${selectedPot.name}`,
-        })
-        closeModal()
-      } else {
-        setFieldError(r.error)
-      }
+    } else if (selectedPot) {
+      const amount = parseMoneyInput(inputValue)
 
-    } else if (modalMode === 'withdraw' && selectedPot) {
-      const r = await potsService.withdraw(selectedPot.id, parseFloat(inputValue))
-      if (r.data !== null) {
-        updatePotBalance(selectedPot.id, r.data.pot.balance)
-        applyTransaction({
-          id: generateId(),
-          date: now,
-          type: 'pot_withdrawal',
-          amount: r.data.creditAmount,
-          description: `Withdraw from ${selectedPot.name}`,
-        })
-        closeModal()
-      } else {
-        setFieldError(r.error)
+      if (amount === null) {
+        setFieldError('Enter a valid amount, e.g. 25 or 25.50.')
+
+      } else if (modalMode === 'deposit') {
+        const r = await potsService.deposit(selectedPot.id, amount)
+        if (r.data !== null) {
+          updatePotBalance(selectedPot.id, r.data.pot.balance)
+          applyTransaction({
+            id: generateId(),
+            date: now,
+            type: 'pot_deposit',
+            amount: -r.data.debitAmount,
+            description: `Transfer to ${selectedPot.name}`,
+          })
+          closeModal()
+        } else {
+          setFieldError(r.error)
+        }
+
+      } else if (modalMode === 'withdraw') {
+        const r = await potsService.withdraw(selectedPot.id, amount)
+        if (r.data !== null) {
+          updatePotBalance(selectedPot.id, r.data.pot.balance)
+          applyTransaction({
+            id: generateId(),
+            date: now,
+            type: 'pot_withdrawal',
+            amount: r.data.creditAmount,
+            description: `Withdraw from ${selectedPot.name}`,
+          })
+          closeModal()
+        } else {
+          setFieldError(r.error)
+        }
       }
     }
 
