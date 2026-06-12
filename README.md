@@ -6,6 +6,10 @@ from a single codebase.
 
 ---
 
+![plot](./assets/screenshots/ios_recording.gif)
+
+---
+
 ## Quick start
 
 ```bash
