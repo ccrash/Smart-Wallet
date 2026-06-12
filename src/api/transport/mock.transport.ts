@@ -1,5 +1,6 @@
 import catalogJson from '@/data/vouchers.json'
 import { Pot, User, Voucher, VoucherProduct } from '@/types'
+import { POINTS_PER_REDEEM_UNIT, pointsToCredit } from '@/utils/loyalty'
 import { isValidAmount, roundMoney } from '@/utils/money'
 
 import { generateId } from '../client'
@@ -9,8 +10,6 @@ import { ApiTransport } from './types'
 const DELAY_MS = 150
 const PAGE_SIZE = 20
 const MAX_NAME_LENGTH = 30
-const POINTS_PER_UNIT = 100
-const CREDIT_PER_UNIT = 1
 
 const VOUCHER_CATALOG: VoucherProduct[] = catalogJson
 const VOUCHER_DENOMINATIONS = VOUCHER_CATALOG.map((v) => v.denomination)
@@ -156,12 +155,12 @@ export const mockTransport: ApiTransport = {
       return respond(() => {
         const points = Number(b.points)
         if (points <= 0) throw new Error('Points to redeem must be greater than zero.')
-        if (points % POINTS_PER_UNIT !== 0)
-          throw new Error(`Points must be redeemed in multiples of ${POINTS_PER_UNIT}.`)
+        if (points % POINTS_PER_REDEEM_UNIT !== 0)
+          throw new Error(`Points must be redeemed in multiples of ${POINTS_PER_REDEEM_UNIT}.`)
         const { loyaltyPoints } = db.get()
         if (loyaltyPoints < points) throw new Error('Insufficient loyalty points.')
         return {
-          creditAmount: (points / POINTS_PER_UNIT) * CREDIT_PER_UNIT,
+          creditAmount: pointsToCredit(points),
           remainingPoints: loyaltyPoints - points,
           transactionId: generateId(),
         }

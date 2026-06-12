@@ -7,9 +7,7 @@ import { useRouter } from 'expo-router'
 import { generateId } from '@/api/client'
 import { loyaltyService } from '@/api/loyalty.service'
 import { useWalletStore } from '@/store/walletStore'
-
-const POINTS_PER_UNIT = 100
-const CREDIT_PER_UNIT = 1
+import { POINTS_PER_REDEEM_UNIT as POINTS_PER_UNIT, pointsToCredit } from '@/utils/loyalty'
 
 export function RedeemCard() {
   const router           = useRouter()
@@ -34,7 +32,7 @@ export function RedeemCard() {
     })
   }, [maxRedeemable])
 
-  const creditPreview = (redeemAmount / POINTS_PER_UNIT) * CREDIT_PER_UNIT
+  const creditPreview = pointsToCredit(redeemAmount)
   const canRedeem     = redeemAmount > 0 && redeemAmount <= loyaltyPoints
 
   const halfRedeemable = Math.max(

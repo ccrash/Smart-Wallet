@@ -5,9 +5,9 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { ThemePreference } from '@/types'
 
 type ThemeState = {
-  preference: ThemePreference;
-  setPreference: (p: ThemePreference) => void;
-};
+  preference: ThemePreference
+  setPreference: (p: ThemePreference) => void
+}
 
 export const useThemeStore = create<ThemeState>()(
   persist(

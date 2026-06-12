@@ -3,11 +3,11 @@ import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
 type SecurityState = {
-  biometricLockEnabled: boolean;
-  isHydrated: boolean;
-  setBiometricLockEnabled: (enabled: boolean) => void;
-  _setHydrated: () => void;
-};
+  biometricLockEnabled: boolean
+  isHydrated: boolean
+  setBiometricLockEnabled: (enabled: boolean) => void
+  _setHydrated: () => void
+}
 
 export const useSecurityStore = create<SecurityState>()(
   persist(

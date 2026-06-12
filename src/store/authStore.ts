@@ -5,13 +5,13 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { User } from '@/types'
 
 type AuthState = {
-  user: User | null;
-  isAuthenticated: boolean;
-  isHydrated: boolean;
-  signIn: (user: User) => void;
-  signOut: () => void;
-  _setHydrated: () => void;
-};
+  user: User | null
+  isAuthenticated: boolean
+  isHydrated: boolean
+  signIn: (user: User) => void
+  signOut: () => void
+  _setHydrated: () => void
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
