@@ -10,9 +10,29 @@ from a single codebase.
 
 ```bash
 npm install
-npm run web      # browser at http://localhost:8081
-npm run android  # Android (requires emulator or device)
+npm start        # builds the app and prints a QR code
+```
+
+Then choose a target:
+
+- **Mobile** — install **Expo Go** ([iOS](https://apps.apple.com/app/expo-go/id982107779) /
+  [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)) and scan the QR
+  code from the terminal (iOS: Camera app; Android: the Expo Go scanner).
+- **Web** — press `w` in the terminal to open the browser version.
+
+If `npm start` can't connect (corporate Wi‑Fi, VPN, or other network restrictions), use the
+tunnel instead, which routes through Expo's servers:
+
+```bash
+npm run start:tunnel
+```
+
+Other handy scripts:
+
+```bash
 npm test         # Jest suite
+npm run android  # open directly in an Android emulator
+npm run ios      # open directly in an iOS simulator (macOS)
 ```
 
 No environment variables are required — the app ships with a built-in mock backend that
